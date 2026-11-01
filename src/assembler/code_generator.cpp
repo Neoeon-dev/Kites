@@ -52,6 +52,10 @@ printIntermediateCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCo
             code = block.getOpcode() + " " + block.getRd() + " " + block.getImm() + " <" +
                    block.getLabel() + ">";
         }
+        else if (instruction_set::isValidVTypeInstruction(block.getOpcode()))
+        {
+            code = block.getOpcode() + " " + block.getRd() + ", " + block.getRs1() + ", " + block.getRs2();
+        }
         else
         {
             code = block.getOpcode() + " " + block.getImm();
@@ -358,6 +362,29 @@ uint32_t generateFDSTypeMachineCode(const ICUnit &block)
     return machineCode;
 }
 
+uint32_t generateVTypeMachineCode(const ICUnit &block)
+{
+    const auto &encoding = 
+        instruction_set::V_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t vs1 = extractRegisterIndex(block.getRs2());
+    const uint32_t vs2 = extractRegisterIndex(block.getRs1());
+    const uint32_t vd = extractRegisterIndex(block.getRd());
+
+    constexpr uint32_t vm = 1;
+
+    uint32_t machineCode = 0;
+
+    machineCode |= (encoding.funct6.to_ullong() << 26);
+    machineCode |= (vm << 25);
+    machineCode |= (vs2 << 20);
+    machineCode |= (vs1 << 15);
+    machineCode |= (encoding.funct3.to_ullong() << 12);
+    machineCode |= (vd << 7);
+    machineCode |= (encoding.opcode.to_ullong());
+
+    return machineCode;
+}
+
 std::vector<uint32_t>
 generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode)
 {
@@ -433,6 +460,10 @@ generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode
         else if (instruction_set::isValidFDSTypeInstruction(block.getOpcode()))
         {
             code = generateFDSTypeMachineCode(block);
+        }
+        else if (instruction_set::isValidVTypeInstruction(block.getOpcode()))
+        {
+            code = generateVTypeMachineCode(block);
         }
         else
         {

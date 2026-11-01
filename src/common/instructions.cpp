@@ -375,7 +375,10 @@ static const std::unordered_set<std::string> valid_instructions = {
     "fld", "fsd", "fmadd.d", "fmsub.d", "fnmsub.d", "fnmadd.d", "fadd.d", "fsub.d", "fmul.d",
     "fdiv.d", "fsqrt.d", "fsgnj.d", "fsgnjn.d", "fsgnjx.d", "fmin.d", "fmax.d", "fcvt.s.d",
     "fcvt.d.s", "feq.d", "flt.d", "fle.d", "fclass.d", "fcvt.w.d", "fcvt.wu.d", "fcvt.d.w",
-    "fcvt.d.wu", "fcvt.l.d", "fcvt.lu.d", "fmv.x.d", "fcvt.d.l", "fcvt.d.lu", "fmv.d.x"
+    "fcvt.d.wu", "fcvt.l.d", "fcvt.lu.d", "fmv.x.d", "fcvt.d.l", "fcvt.d.lu", "fmv.d.x",
+
+    // RV64V
+    "vadd.vv"
 
 };
 
@@ -515,6 +518,11 @@ static const std::unordered_set<std::string> DExtensionInstructions = {
     "feq.d",    "flt.d",    "fle.d",     "fclass.d", "fcvt.w.d",  "fcvt.wu.d",
     "fmv.x.d",  "fcvt.l.d", "fcvt.lu.d", "fcvt.d.l", "fcvt.d.lu",
 };
+
+static const std::unordered_set<std::string> VTypeInstructions = {
+    "vadd.vv"
+};
+
 
 std::unordered_map<std::string, RTypeInstructionEncoding> R_type_instruction_encoding_map = {
     {"add", {0b0110011, 0b000, 0b0000000}},  // O_GPR_C_GPR_C_GPR
@@ -725,6 +733,10 @@ std::unordered_map<std::string, FDITypeInstructionEncoding> F_D_I_type_instructi
 std::unordered_map<std::string, FDSTypeInstructionEncoding> F_D_S_type_instruction_encoding_map = {
     {"fsw", {0b0100111, 0b010}}, // O_FPR_C_I_LP_GPR_RP
     {"fsd", {0b0100111, 0b011}}, // O_FPR_C_I_LP_GPR_RP
+};
+
+std::unordered_map<std::string, VectorArithmeticInstructionEncoding> V_type_instruction_encoding_map = {
+        {"vadd.vv", {0b1010111, 0b000, 0b000000}},
 };
 
 /*
@@ -967,6 +979,8 @@ std::unordered_map<std::string, std::vector<SyntaxType>> instruction_syntax_map 
                                             // from an x (integer) register into an f
                                             // (floating-point) register without conversion
 
+    {"vadd.vv", {SyntaxType::O_VEC_C_VEC_C_VEC}},
+
 };
 
 bool isValidInstruction(const std::string &instruction)
@@ -1019,6 +1033,10 @@ bool isValidUTypeInstruction(const std::string &instruction)
 bool isValidJTypeInstruction(const std::string &instruction)
 {
     return JTypeInstructions.find(instruction) != JTypeInstructions.end();
+}
+
+bool isValidVTypeInstruction(const std::string &instruction){
+    return VTypeInstructions.find(instruction) != VTypeInstructions.end();
 }
 
 bool isValidPseudoInstruction(const std::string &instruction)
@@ -1206,6 +1224,7 @@ std::string getExpectedSyntaxes(const std::string &opcode)
         {SyntaxType::O_GPR_C_FPR_C_RM, "<gp-reg>, <fp-reg>, <rm>"},
         {SyntaxType::O_GPR_C_FPR_C_FPR, "<gp-reg>, <fp-reg>, <fp-reg>"},
         {SyntaxType::O_FPR_C_I_LP_GPR_RP, "<fp-reg>, <imm>(<gp-reg>)"},
+        {SyntaxType::O_VEC_C_VEC_C_VEC, "<vc-reg>, <vc-reg>, <vec-reg>"}
     };
 
     std::string syntaxes;

@@ -407,6 +407,20 @@ struct FDSTypeInstructionEncoding
     }
 };
 
+struct VectorArithmeticInstructionEncoding{
+    std::bitset<7> opcode;
+    std::bitset<3> funct3;
+    std::bitset<6> funct6;
+
+    VectorArithmeticInstructionEncoding(
+        unsigned int opcode,
+        unsigned int funct3,
+        unsigned int funct6)
+        : opcode(opcode), funct3(funct3), funct6(funct6)
+    {
+    }
+};
+
 /**
  * @brief Enum that represents different syntax types for instructions.
  */
@@ -446,6 +460,7 @@ enum class SyntaxType
                          ///< floating-point-register
     O_FPR_C_I_LP_GPR_RP, ///< Opcode floating-point-register , immediate , lparen ( general-register
                          ///< ) rparen
+    O_VEC_C_VEC_C_VEC
 };
 
 extern std::unordered_map<std::string, RTypeInstructionEncoding> R_type_instruction_encoding_map;
@@ -475,6 +490,8 @@ extern std::unordered_map<std::string, FDITypeInstructionEncoding>
     F_D_I_type_instruction_encoding_map;
 extern std::unordered_map<std::string, FDSTypeInstructionEncoding>
     F_D_S_type_instruction_encoding_map;
+extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
+    V_type_instruction_encoding_map;
 
 /**
  * @brief A map that associates instruction names with their expected syntax.
@@ -494,6 +511,7 @@ bool isValidSTypeInstruction(const std::string &instruction);
 bool isValidBTypeInstruction(const std::string &instruction);
 bool isValidUTypeInstruction(const std::string &instruction);
 bool isValidJTypeInstruction(const std::string &instruction);
+bool isValidVTypeInstruction(const std::string &instruction);
 
 bool isValidPseudoInstruction(const std::string &instruction);
 

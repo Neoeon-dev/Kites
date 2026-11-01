@@ -138,6 +138,10 @@ Token Lexer::identifier()
     {
         return {TokenType::CSR_REGISTER, value, line_number_, start_column};
     }
+    if (IsValidVectorRegister(value))
+    {
+        return {TokenType::VEC_REGISTER, value, line_number_, start_column};
+    }
 
     if (isValidRoundingMode(value))
     {

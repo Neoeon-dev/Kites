@@ -121,5 +121,8 @@ bool IsValidGeneralPurposeRegister(const std::string &reg);
 bool IsValidFloatingPointRegister(const std::string &reg);
 
 bool IsValidCsr(const std::string &reg);
+
+bool IsValidVectorRegister(const std::string &reg);
+
 }//namespace Kites
 #endif // REGISTERS_H
