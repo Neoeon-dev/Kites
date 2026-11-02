@@ -24,6 +24,9 @@ void RegisterFile::Reset()
     gpr_.fill(0);
     fpr_.fill(0.0);
     csr_.fill(0);
+    for(auto &reg : vreg_){
+        reg.fill(0);
+    }
     csr_[0x002] = 0b000; // Default: RNE (IEEE 754)
     emit registerResetSignal();
 }
@@ -70,11 +73,98 @@ uint64_t RegisterFile::ReadCsr(size_t reg) const
     return csr_[reg];
 }
 
+VectorRegister RegisterFile::ReadVreg(size_t reg) const
+{
+    if(reg >= NUM_VREG)
+        throw std::out_of_range("Invalid Vreg index");
+    return vreg_[reg];
+}
+
+uint64_t RegisterFile::ReadVectorElement(
+    size_t reg,
+    size_t elementIndex,
+    size_t sewBits
+) const
+{
+    if (reg >= NUM_VREG)
+        throw std::out_of_range("Invalid Vreg index");
+
+    if (sewBits != 8 && sewBits != 16 &&
+        sewBits != 32 && sewBits != 64)
+    {
+        throw std::invalid_argument("Unsupported SEW");
+    }
+
+    const size_t elementCount = architecture::VLEN_BITS / sewBits;
+
+    if (elementIndex >= elementCount)
+        throw std::out_of_range("Invalid element index");
+
+    // Convert element index into byte offset.
+    const size_t byteOffset = elementIndex * (sewBits / 8);
+
+    // Find the uint64_t word containing this element.
+    const size_t wordIndex = byteOffset / sizeof(uint64_t);
+
+    // Find the bit position inside that word.
+    const size_t bitOffset = (byteOffset % sizeof(uint64_t)) * 8;
+
+    // Extract the element.
+    const uint64_t mask = (sewBits == 64)
+        ? UINT64_MAX
+        : ((uint64_t{1} << sewBits) - 1);
+
+    return (vreg_[reg][wordIndex] >> bitOffset) & mask;
+}
+
 void RegisterFile::WriteCsr(size_t reg, uint64_t value)
 {
     if (reg >= NUM_CSR)
         throw std::out_of_range("Invalid CSR index");
     csr_[reg] = value;
+}
+
+void RegisterFile::WriteVreg(size_t reg, VectorRegister value){
+    if(reg >= NUM_VREG)
+        throw std::out_of_range("Invalid Vreg index");
+    vreg_[reg] = value;
+}
+
+void RegisterFile::WriteVectorElement(
+    size_t reg,
+    size_t elementIndex,
+    size_t sewBits,
+    uint64_t value
+)
+{
+    if (reg >= NUM_VREG)
+        throw std::out_of_range("Invalid Vreg index");
+
+    if (sewBits != 8 && sewBits != 16 &&
+        sewBits != 32 && sewBits != 64)
+    {
+        throw std::invalid_argument("Unsupported SEW");
+    }
+
+    const size_t elementCount = architecture::VLEN_BITS / sewBits;
+
+    if (elementIndex >= elementCount)
+        throw std::out_of_range("Invalid element index");
+
+    const size_t byteOffset = elementIndex * (sewBits / 8);
+
+    const size_t wordIndex = byteOffset / sizeof(uint64_t);
+    const size_t bitOffset = (byteOffset % sizeof(uint64_t)) * 8;
+
+    const uint64_t mask = (sewBits == 64)
+        ? UINT64_MAX
+        : ((uint64_t{1} << sewBits) - 1);
+
+    // Clear the previous element.
+    vreg_[reg][wordIndex] &= ~(mask << bitOffset);
+
+    // Insert the new element.
+    vreg_[reg][wordIndex] |= (value & mask) << bitOffset;
 }
 
 std::vector<uint64_t> RegisterFile::GetGprValues() const
@@ -85,6 +175,10 @@ std::vector<uint64_t> RegisterFile::GetGprValues() const
 std::vector<uint64_t> RegisterFile::GetFprValues() const
 {
     return {fpr_.begin(), fpr_.end()};
+}
+
+std::vector<VectorRegister> RegisterFile::GetVectorRegisterValue() const{
+    return {vreg_.begin(), vreg_.end()};
 }
 
 void RegisterFile::ModifyRegister(const std::string &reg_name, uint64_t value)

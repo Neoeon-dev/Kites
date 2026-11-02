@@ -13,9 +13,17 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <cstdint>
+#include "processor/processor_types.h"
 
 namespace Kites
 {
+
+  using VectorElementSize = uint64_t;
+
+  const size_t sizeOfVector = architecture::VLEN_BYTES/sizeof(VectorElementSize);
+
+  using VectorRegister = std::array<VectorElementSize, sizeOfVector>; ///< Type for vector register size, using 64-bit unsigned integer.
 /**
  * @brief Represents a register file containing integer, floating-point, and vector registers.
  */
@@ -25,9 +33,11 @@ class RegisterFile : public QObject
   private:
     static constexpr size_t NUM_GPR = 32; ///< Number of General-Purpose Registers (GPR).
     static constexpr size_t NUM_FPR = 32; ///< Number of Floating-Point Registers (FPR).
+    static constexpr size_t NUM_VREG = 32; ///< Number of Vector Registers.
 
     std::array<uint64_t, NUM_GPR> gpr_ = {}; ///< Array for storing GPR values.
     std::array<uint64_t, NUM_FPR> fpr_ = {}; ///< Array for storing FPR values.
+    std::array<VectorRegister, NUM_VREG> vreg_ = {}; ///< Array for storing vector register values.
 
     static constexpr size_t NUM_CSR = 4096; ///< Number of Control and Status Registers (CSR).
 
@@ -82,6 +92,38 @@ class RegisterFile : public QObject
     [[nodiscard]] uint64_t ReadCsr(size_t reg) const;
 
     void WriteCsr(size_t reg, uint64_t value);
+
+    
+    /**
+     * @brief Reads the value of a Vector register (Vreg).
+     * @param reg The index of the FPR to read.
+     * @return The value of the FPR at the specified index.
+     */
+
+    [[nodiscard]] VectorRegister ReadVreg(size_t reg) const;
+
+    /**
+     * @brief Writes a value to a Vector Register (Vreg)
+     * @param reg The index of the Vreg to write
+     * @param value The value to write
+     */
+
+    void WriteVreg(size_t reg, VectorRegister value);
+
+    [[nodiscard]] uint64_t ReadVectorElement(
+      size_t reg,
+      size_t elementIndex,
+      size_t sewBits
+    ) const;
+
+    void WriteVectorElement(
+      size_t reg,
+      size_t elementIndex,
+      size_t sewBits,
+      uint64_t value
+    );
+
+    [[nodiscard]] std::vector<VectorRegister> GetVectorRegisterValue() const;
 
     /**
      * @brief Retrieves the values of all General-Purpose Registers (GPR).
