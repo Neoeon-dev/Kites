@@ -1096,6 +1096,11 @@ bool isValidVSTypeInstruction(const std::string &instruction)
     return (VSTypeInstructions.find(instruction) != VSTypeInstructions.end());
 }
 
+bool isValidVTypeInstruction(const std::string &instruction)
+{
+    return (isValidVLTypeInstruction(instruction) || isValidVSTypeInstruction(instruction));
+}
+
 
 
 bool isFInstruction(const uint32_t &instruction)
