@@ -42,6 +42,33 @@ struct ICUnit
     std::string label;        ///< Label associated with this code block, if any.
     uint8_t rm;               ///< Rounding mode (up to 4 characters, null-terminated).
 
+    struct VectorExtension{
+        bool valid = false; ///< Indicates if the vector extension is valid for this instruction.
+        std::array<char, 6> vd ;   ///< Destination vector register name (up to 20 characters, null-terminated).
+        std::array<char, 6> vs1 ;  ///< Source vector register 1 name (up to 20 characters, null-terminated).
+        std::array<char, 6> vs2 ;  ///< Source vector register 2 name (up to 20 characters, null-terminated).
+
+        uint8_t width = 0;
+
+        uint8_t lumop = 0;
+
+        uint8_t stride = 0;
+
+        uint8_t address = 0;
+
+        uint8_t address_offsets = 0;
+
+        uint8_t vm = 0;
+
+        uint8_t mop = 0;
+
+        uint8_t mew = 0;
+
+        uint8_t nf = 0;
+
+        uint8_t sumop = 0;
+    };
+
     ICUnit() : line_number{}, opcode{}, rd{}, rs1{}, rs2{}, rs3{}, csr{}, imm{}, label{}, rm{}
     {
         opcode.fill('\0');

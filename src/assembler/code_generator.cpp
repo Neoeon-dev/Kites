@@ -363,7 +363,8 @@ uint32_t generateFDSTypeMachineCode(const ICUnit &block)
 }
 
 uint32_t generateVLTypeMachineCode(const ICUnit &block){
-    ;
+    const auto &encoding = 
+        instruction_set::VL_type_instruction_encoding_map.at(block.getOpcode());
 }
 
 uint32_t generateVTypeMachineCode(const ICUnit &block)

@@ -231,12 +231,13 @@ const std::unordered_set<std::string> valid_vector_registers = {
     "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
 };
 
-const std::unordered_set<std::string> valid_csr_registers = {"fflags", "frm", "fcsr"};
+const std::unordered_set<std::string> valid_csr_registers = {"fflags", "frm", "fcsr", "vtype"};
 
 const std::unordered_map<std::string, int> csr_to_address{
     {"fflags", 0x001},
     {"frm", 0x002},
     {"fcsr", 0x003},
+    {"vtype", 0xC21},
 };
 
 const std::unordered_map<std::string, std::string> reg_alias_to_name = {

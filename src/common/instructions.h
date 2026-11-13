@@ -492,6 +492,8 @@ extern std::unordered_map<std::string, FDSTypeInstructionEncoding>
     F_D_S_type_instruction_encoding_map;
 extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
     V_type_instruction_encoding_map;
+extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
+    VL_type_instruction_encoding_map;
 
 /**
  * @brief A map that associates instruction names with their expected syntax.
