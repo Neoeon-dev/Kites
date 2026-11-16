@@ -28,6 +28,8 @@ void RegisterFile::Reset()
         reg.fill(0);
     }
     csr_[0x002] = 0b000; // Default: RNE (IEEE 754)
+    csr_[0xC00] = 0x00000000; // Default: VLEN=0, VTYPE=0
+    csr_[0xC22] = architecture::VLEN_BYTES / 8; // Default VLENB=VLEN/8
     emit registerResetSignal();
 }
 
@@ -199,6 +201,32 @@ void RegisterFile::ModifyRegister(const std::string &reg_name, uint64_t value)
     else
     {
         throw std::invalid_argument("Invalid register name: " + reg_name_n);
+    }
+}
+
+void RegisterFile::ModifyRegister(const std::string &reg_name, VectorRegister value)
+{
+    std::string reg_name_n = reg_alias_to_name.at(reg_name);
+    if (IsValidVectorRegister(reg_name_n))
+    {
+        WriteVreg(std::stoi(reg_name_n.substr(1)), value);
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid vector register name: " + reg_name_n);
+    }
+}
+
+void RegisterFile::ModifyVectorRegisterElement(const std::string &reg_name, size_t elementIndex, size_t sewBits, uint64_t value)
+{
+    std::string reg_name_n = reg_alias_to_name.at(reg_name);
+    if (IsValidVectorRegister(reg_name_n))
+    {
+        WriteVectorElement(std::stoi(reg_name_n.substr(1)), elementIndex, sewBits, value);
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid vector register name: " + reg_name_n);
     }
 }
 

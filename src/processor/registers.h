@@ -139,6 +139,11 @@ class RegisterFile : public QObject
 
     void ModifyRegister(const std::string &reg_name, uint64_t value);
 
+    void ModifyRegister(const std::string &reg_name, VectorRegister value);
+
+    void ModifyVectorRegisterElement(const std::string &reg_name, size_t elementIndex, size_t sewBits, uint64_t value);
+    
+
   signals:
     void updateRegister(size_t regIndex, uint64_t value);
     void updateFRegister(size_t regIndex, uint64_t value);

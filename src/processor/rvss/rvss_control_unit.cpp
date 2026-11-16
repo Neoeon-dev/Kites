@@ -132,6 +132,11 @@ void RVSSControlUnit::SetControlSignals(uint32_t instruction)
         alu_op_ = true;
         break;
     }
+    case 0b1010111:
+    {
+        reg_write_ = true;
+        break;
+    }
 
     default:
         break;
