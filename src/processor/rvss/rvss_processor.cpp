@@ -199,6 +199,11 @@ void RVSSProcessor::Execute()
         ExecuteCsr();
         return;
     }
+    else if (opcode == 0b1010111){
+        // RV64 V
+        ExecuteVectorArithmetic();
+        return;
+    }
 
     uint8_t rs1 = (current_instruction_ >> 15) & 0b11111;
     uint8_t rs2 = (current_instruction_ >> 20) & 0b11111;
@@ -402,6 +407,90 @@ void RVSSProcessor::ExecuteCsr()
     csr_old_value_ = csr_val;
     csr_write_val_ = registers_.ReadGpr(rs1);
     csr_uimm_ = rs1;
+}
+
+uint64_t vset_new_vl_{};
+uint64_t vset_new_vtype_{};
+
+void RVSSProcessor::ExecuteVsetType()
+{
+    uint8_t rd  = (current_instruction_ >> 7)  & 0x1F;
+    uint8_t rs1 = (current_instruction_ >> 15) & 0x1F;
+    uint64_t vtype;
+    uint64_t avl;
+
+    if (((current_instruction_ >> 31) & 1) == 0) {               // vsetvli
+        vtype = (current_instruction_ >> 20) & 0x7FF;
+        avl = rs1 ? registers_.ReadGpr(rs1) : (rd ? UINT64_MAX : registers_.ReadCsr(0xC20));
+    } else if (((current_instruction_ >> 30) & 0b11) == 0b11) {  // vsetivli
+        vtype = (current_instruction_ >> 20) & 0x3FF;
+        avl = rs1;                                                // uimm[4:0]
+    } else {                                                      // vsetvl
+        vtype = registers_.ReadGpr((current_instruction_ >> 20) & 0x1F);
+        avl = rs1 ? registers_.ReadGpr(rs1) : (rd ? UINT64_MAX : registers_.ReadCsr(0xC20));
+    }
+
+    unsigned vsew = (vtype >> 3) & 0b111;
+    int lmul_shift = static_cast<int>(vtype & 0b111);
+    if (lmul_shift >= 4) lmul_shift -= 8;                         // sign-extend: mf8=-3 ... m8=3
+    unsigned sew = 8u << vsew;
+
+    bool ill = vsew > 3 || sew > architecture::ELEN_BITS
+            || lmul_shift == -4                                   // vlmul=100 is reserved
+            || (lmul_shift < 0 && sew > (architecture::ELEN_BITS >> -lmul_shift))
+            || (vtype >> 8) != 0;                                // reserved bits must be 0
+
+    if (ill) {
+        vset_new_vtype_ = 1ULL << 63;
+        vset_new_vl_ = 0;
+        return;
+    }
+
+    uint64_t base = architecture::VLEN_BITS / sew;
+    uint64_t vlmax = lmul_shift >= 0 ? base << lmul_shift : base >> -lmul_shift;
+    vset_new_vtype_ = vtype;
+    vset_new_vl_ = std::min(avl, vlmax);
+}
+
+void RVSSProcessor::ExecuteVectorArithmetic()
+{
+    // Implementation for vector instructions
+    uint8_t funct6 = (current_instruction_ >> 26) & 0b111111;
+    uint8_t funct3 = (current_instruction_ >> 12) & 0b111;
+    if(funct3 == 0b111) { // VSETVLI or VSETIVLI
+        ExecuteVsetType();
+        return;
+    }
+    uint8_t vs1 = (current_instruction_ >> 15) & 0b11111;
+    uint8_t vs2 = (current_instruction_ >> 20) & 0b11111;
+    uint8_t vd = (current_instruction_ >> 7) & 0b11111;
+    uint8_t vm = (current_instruction_ >> 25) & 0b1; // Vector mask bit
+    uint8_t rs1 = (current_instruction_ >> 15) & 0b11111; // For certain vector instructions
+
+
+    switch (funct3)
+    {
+        case 0b000: // Vector addition
+            execution_result_ = registers_.ReadGpr(vs1) + registers_.ReadGpr(vs2);
+            break;
+        case 0b001: // Vector subtraction
+            execution_result_ = registers_.ReadGpr(vs1) - registers_.ReadGpr(vs2);
+            break;
+        case 0b010: // Vector multiplication
+            execution_result_ = registers_.ReadGpr(vs1) * registers_.ReadGpr(vs2);
+            break;
+        case 0b011: // Vector division
+            if (registers_.ReadGpr(vs2) != 0)
+                execution_result_ = registers_.ReadGpr(vs1) / registers_.ReadGpr(vs2);
+            else
+                execution_result_ = 0; // Handle division by zero
+            break;
+
+        default:
+            std::cerr << "Unsupported vector operation" << std::endl;
+            break;
+    }
+
 }
 
 // TODO: implement writeback for syscalls
@@ -846,6 +935,11 @@ void RVSSProcessor::WriteBack()
         WriteBackCsr();
         return;
     }
+    else if (opcode == 0b1010111)
+    { // RV64 V
+        WriteBackVector();
+        return;
+    }
 
     uint64_t old_reg = registers_.ReadGpr(rd);
     unsigned int reg_index = rd;
@@ -1063,6 +1157,55 @@ void RVSSProcessor::WriteBackCsr()
     {
         current_delta_.register_changes.push_back({csr_target_address_, 1, old_csr, new_csr});
     }
+}
+
+void RVSSProcessor::WriteBackVsetType()
+{
+    //In WriteBackVsetvl(), write the three values with WriteCsr(0xC21, …), 
+    //WriteCsr(0xC20, …) and WriteGpr(rd, …). For each one, push an entry to current_delta_.register_changes with reg_type 1 for a CSR or 0 for a GPR, the same way WriteBackCsr does. Your existing Undo()/Redo() then handle it with no changes.
+
+    WriteBackCsr(); // Write back to CSR 0xC21 (vtype)
+    uint64_t old_vl = registers_.ReadCsr(0xC20);
+    registers_.WriteCsr(0xC20, vset_new_vl_);
+    uint64_t new_vl = registers_.ReadCsr(0xC20);
+    if (old_vl != new_vl)
+    {
+        current_delta_.register_changes.push_back({0xC20, 1, old_vl, new_vl});
+    }
+    uint8_t rd = (current_instruction_ >> 7) & 0b11111;
+    uint64_t old_gpr = registers_.ReadGpr(rd);
+    registers_.WriteGpr(rd, vset_new_vl_);
+    uint64_t new_gpr = registers_.ReadGpr(rd);
+    if (old_gpr != new_gpr)
+    {
+        current_delta_.register_changes.push_back({rd, 0, old_gpr, new_gpr});
+    }
+}
+
+void RVSSProcessor::WriteBackVector() 
+{
+
+    uint8_t rd = (current_instruction_ >> 7) & 0b11111;
+    uint8_t funct3 = (current_instruction_ >> 12) & 0b111;
+
+    if(funct3 == 0b111){
+        WriteBackVsetType();
+        return;
+    }
+
+    switch (funct3)
+    {
+        case 0b000: // Vector addition
+        case 0b001: // Vector subtraction
+        case 0b010: // Vector multiplication
+        case 0b011: // Vector division
+            registers_.WriteGpr(rd, execution_result_);
+            break;
+        default:
+            std::cerr << "Unsupported vector operation in WriteBackVector" << std::endl;
+            break;
+    }
+
 }
 
 void RVSSProcessor::DebugRun()

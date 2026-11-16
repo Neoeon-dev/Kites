@@ -13,7 +13,7 @@ namespace Kites
 {
 bool Parser::parse_O_GPR_C_GPR_C_VTYPE()
 {
-    if (peekToken(1).line_number == curentToken().line_number&&
+    if (peekToken(1).line_number == currentToken().line_number&&
         peekToken(1).type == TokenType::GP_REGISTER &&
         peekToken(2).line_number == currentToken().line_number &&
         peekToken(2).type == TokenType::COMMA &&
@@ -36,7 +36,7 @@ bool Parser::parse_O_GPR_C_GPR_C_VTYPE()
         peekToken(11).line_number == currentToken().line_number &&
         peekToken(11).type == TokenType::MASK &&
         (peekToken(12).type == TokenType::EOF_ ||
-         peekToken(12).line_number != currentToken().line_number)
+         peekToken(12).line_number != currentToken().line_number))
         {
             ICUnit block;
             block.setOpcode(currentToken().value);
@@ -46,10 +46,5 @@ bool Parser::parse_O_GPR_C_GPR_C_VTYPE()
             std::string reg;
             reg = reg_alias_to_name.at(peekToken(1).value);
         }
-)
-
-    {
-        ICUnit 
-    }
 }
 }

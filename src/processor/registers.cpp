@@ -28,6 +28,8 @@ void RegisterFile::Reset()
         reg.fill(0);
     }
     csr_[0x002] = 0b000; // Default: RNE (IEEE 754)
+    csr_[0xC00] = 0x00000000; // Default: VLEN=0, VTYPE=0
+    csr_[0xC22] = architecture::VLEN_BYTES / 8; // Default VLENB=VLEN/8
     emit registerResetSignal();
 }
 
@@ -202,6 +204,32 @@ void RegisterFile::ModifyRegister(const std::string &reg_name, uint64_t value)
     }
 }
 
+void RegisterFile::ModifyRegister(const std::string &reg_name, VectorRegister value)
+{
+    std::string reg_name_n = reg_alias_to_name.at(reg_name);
+    if (IsValidVectorRegister(reg_name_n))
+    {
+        WriteVreg(std::stoi(reg_name_n.substr(1)), value);
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid vector register name: " + reg_name_n);
+    }
+}
+
+void RegisterFile::ModifyVectorRegisterElement(const std::string &reg_name, size_t elementIndex, size_t sewBits, uint64_t value)
+{
+    std::string reg_name_n = reg_alias_to_name.at(reg_name);
+    if (IsValidVectorRegister(reg_name_n))
+    {
+        WriteVectorElement(std::stoi(reg_name_n.substr(1)), elementIndex, sewBits, value);
+    }
+    else
+    {
+        throw std::invalid_argument("Invalid vector register name: " + reg_name_n);
+    }
+}
+
 const std::unordered_set<std::string> valid_general_purpose_registers = {
     "x0",   "x1",  "x2",  "x3",  "x4",  "x5",  "x6",  "x7",  "x8",  "x9",  "x10",
     "x11",  "x12", "x13", "x14", "x15", "x16", "x17", "x18", "x19", "x20", "x21",
@@ -231,13 +259,14 @@ const std::unordered_set<std::string> valid_vector_registers = {
     "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
 };
 
-const std::unordered_set<std::string> valid_csr_registers = {"fflags", "frm", "fcsr", "vtype"};
+const std::unordered_set<std::string> valid_csr_registers = {"fflags", "frm", "fcsr", "vtype", "vl"};
 
 const std::unordered_map<std::string, int> csr_to_address{
     {"fflags", 0x001},
     {"frm", 0x002},
     {"fcsr", 0x003},
     {"vtype", 0xC21},
+    {"vl", 0xC20},
 };
 
 const std::unordered_map<std::string, std::string> reg_alias_to_name = {
@@ -273,7 +302,7 @@ const std::unordered_map<std::string, std::string> reg_alias_to_name = {
     {"f25", "f25"},       {"f26", "f26"},  {"f27", "f27"},   {"f28", "f28"}, {"f29", "f29"},
     {"f30", "f30"},       {"f31", "f31"},
 
-    {"fflags", "fflags"}, {"frm", "frm"},  {"fcsr", "fcsr"},
+    {"fflags", "fflags"}, {"frm", "frm"},  {"fcsr", "fcsr"}, {"vtype", "vtype"}, {"vl", "vl"}
 
 };
 

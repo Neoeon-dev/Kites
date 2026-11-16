@@ -731,6 +731,14 @@ std::unordered_map<std::string, FDSTypeInstructionEncoding> F_D_S_type_instructi
     {"fsd", {0b0100111, 0b011}}, // O_FPR_C_I_LP_GPR_RP
 };
 
+std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
+    V_type_instruction_encoding_map = {
+        {"vadd.vv", {0b1010111, 0b000, 0b000000}},
+};
+
+std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
+    VL_type_instruction_encoding_map = {};
+
 /*
     O_GPR_C_GPR_C_GPR,       ///< Opcode general-register , general-register , register
     O_GPR_C_GPR_C_I,        ///< Opcode general-register , general-register , immediate
