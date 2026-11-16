@@ -231,12 +231,20 @@ const std::unordered_set<std::string> valid_vector_registers = {
     "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31"
 };
 
-const std::unordered_set<std::string> valid_csr_registers = {"fflags", "frm", "fcsr"};
+const std::unordered_set<std::string> valid_csr_registers = {"fflags", "frm", "fcsr","vstart","vlenb","vl","vtype","vxsat","vxrm","vcsr"};
 
 const std::unordered_map<std::string, int> csr_to_address{
     {"fflags", 0x001},
     {"frm", 0x002},
     {"fcsr", 0x003},
+    
+    {"vstart", 0x008},
+    {"vxsat", 0x009},
+    {"vxrm", 0x00A},
+    {"vcsr", 0x00F},
+    {"vl", 0xC20},
+    {"vtype", 0xC21},
+    {"vlenb", 0xC22}
 };
 
 const std::unordered_map<std::string, std::string> reg_alias_to_name = {
@@ -273,6 +281,9 @@ const std::unordered_map<std::string, std::string> reg_alias_to_name = {
     {"f30", "f30"},       {"f31", "f31"},
 
     {"fflags", "fflags"}, {"frm", "frm"},  {"fcsr", "fcsr"},
+    
+    {"vstart", "vstart"}, {"vxsat", "vxsat"}, {"vxrm", "vxrm"}, {"vcsr", "vcsr"},
+    {"vl", "vl"}, {"vtype", "vtype"},{"vlenb", "vlenb"},
 
 };
 
