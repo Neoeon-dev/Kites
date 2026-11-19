@@ -421,8 +421,7 @@ void RVSSProcessor::ExecuteCsr()
     csr_uimm_ = rs1;
 }
 
-uint64_t vset_new_vl_{};
-uint64_t vset_new_vtype_{};
+
 
 void RVSSProcessor::ExecuteVsetType()
 {

@@ -69,7 +69,7 @@ struct ICUnit
         uint8_t sumop = 0;
     } vec_block;
 
-    ICUnit() : line_number{}, opcode{}, rd{}, rs1{}, rs2{}, rs3{}, csr{}, imm{}, label{}, rm{}
+    ICUnit() : line_number{}, opcode{}, rd{}, rs1{}, rs2{}, rs3{}, csr{}, imm{}, label{}, rm{}, vec_block{}
     {
         opcode.fill('\0');
         rd.fill('\0');
@@ -77,6 +77,9 @@ struct ICUnit
         rs2.fill('\0');
         rs3.fill('\0');
         imm.fill('\0');
+        vec_block.vd.fill('\0');
+        vec_block.vs1.fill('\0');
+        vec_block.vs2.fill('\0');
     }
 
     friend std::ostream &operator<<(std::ostream &os, const ICUnit &unit)

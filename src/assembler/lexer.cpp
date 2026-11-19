@@ -165,6 +165,10 @@ Token Lexer::identifier()
     {
         return {TokenType::MASK, value, line_number_, start_column};
     }
+    if(IsValidVM(value))
+    {
+        return {TokenType::VM, value, line_number_, start_column};
+    }
 
     // An identifier in operand position (right after an opcode or a comma) is a label
     // reference even if its text happens to match an instruction mnemonic, e.g. `j add`

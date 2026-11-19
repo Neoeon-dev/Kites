@@ -28,8 +28,9 @@ void RegisterFile::Reset()
         reg.fill(0);
     }
     csr_[0x002] = 0b000; // Default: RNE (IEEE 754)
-    csr_[0xC00] = 0x00000000; // Default: VLEN=0, VTYPE=0
-    csr_[0xC22] = architecture::VLEN_BYTES / 8; // Default VLENB=VLEN/8
+    csr_[0xC20] = 0x00000000; 
+    csr_[0xC21] = 0x00000000; // Default: VLEN=0, VTYPE=0
+    csr_[0xC22] = architecture::VLEN_BYTES; 
     emit registerResetSignal();
 }
 
@@ -129,8 +130,8 @@ void RegisterFile::WriteCsr(size_t reg, uint64_t value)
 void RegisterFile::WriteVreg(size_t reg, VectorRegister value){
     if(reg >= NUM_VREG)
         throw std::out_of_range("Invalid Vreg index");
-    emit updateVRegister(reg, value);
     vreg_[reg] = value;
+    emit updateVRegister(reg, value);
 }
 
 void RegisterFile::WriteVectorElement(
@@ -163,13 +164,13 @@ void RegisterFile::WriteVectorElement(
         ? UINT64_MAX
         : ((uint64_t{1} << sewBits) - 1);
 
-    emit updateVRegister(reg, vreg_[reg]);
-
     // Clear the previous element.
     vreg_[reg][wordIndex] &= ~(mask << bitOffset);
 
     // Insert the new element.
     vreg_[reg][wordIndex] |= (value & mask) << bitOffset;
+
+    emit updateVRegister(reg, vreg_[reg]);
 }
 
 std::vector<uint64_t> RegisterFile::GetGprValues() const
@@ -316,6 +317,13 @@ const std::unordered_map<std::string, std::string> reg_alias_to_name = {
     {"vstart", "vstart"}, {"vxsat", "vxsat"}, {"vxrm", "vxrm"}, {"vcsr", "vcsr"},
     {"vl", "vl"}, {"vtype", "vtype"},{"vlenb", "vlenb"},
 
+    {"v0", "v0"}, {"v1", "v1"}, {"v2", "v2"}, {"v3", "v3"}, {"v4", "v4"}, {"v5", "v5"},
+    {"v6", "v6"}, {"v7", "v7"}, {"v8", "v8"}, {"v9", "v9"}, {"v10", "v10"}, {"v11", "v11"},
+    {"v12", "v12"}, {"v13", "v13"}, {"v14", "v14"}, {"v15", "v15"}, {"v16", "v16"},
+    {"v17", "v17"}, {"v18", "v18"}, {"v19", "v19"}, {"v20", "v20"}, {"v21", "v21"},
+    {"v22", "v22"}, {"v23", "v23"}, {"v24", "v24"}, {"v25", "v25"}, {"v26", "v26"},
+    {"v27", "v27"}, {"v28", "v28"}, {"v29", "v29"}, {"v30", "v30"}, {"v31", "v31"},
+
 };
 
 bool IsValidGeneralPurposeRegister(const std::string &reg)
@@ -335,6 +343,10 @@ bool IsValidCsr(const std::string &reg)
 
 bool IsValidVectorRegister(const std::string &reg){
     return valid_vector_registers.find(reg) != valid_vector_registers.end();
+}
+
+bool IsValidVM(const std::string &reg){
+    return (reg == "v0.t");
 }
 
 }//namespace Kites

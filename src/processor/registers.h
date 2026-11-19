@@ -172,5 +172,8 @@ bool IsValidCsr(const std::string &reg);
 
 bool IsValidVectorRegister(const std::string &reg);
 
+bool IsValidVM(const std::string &reg);
+
+
 }//namespace Kites
 #endif // REGISTERS_H

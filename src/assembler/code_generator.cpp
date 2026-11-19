@@ -400,7 +400,7 @@ uint32_t generateVXTypeMachineCode(const ICUnit &block)
     const auto &encoding = instruction_set::VArithmetic_type_instruction_encoding_map.at(block.getOpcode());
     const uint32_t vd = extractRegisterIndex(block.getVd());
     const uint32_t vs1 = extractRegisterIndex(block.getVs1());
-    const uint32_t rs2 = extractRegisterIndex(block.getRs2());
+    const uint32_t rs2 = extractRegisterIndex(block.getRs1());
     const uint32_t vm = block.getVm();
     uint32_t machineCode = 0;
     machineCode |= (encoding.funct6.to_ulong() << 26);

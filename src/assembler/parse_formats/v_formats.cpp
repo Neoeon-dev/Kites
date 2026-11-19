@@ -83,9 +83,9 @@ bool Parser::parse_O_VREG_C_VREG_C_VREG()
             reg = reg_alias_to_name.at(peekToken(1).value);
             block.setVd(reg);
             reg = reg_alias_to_name.at(peekToken(3).value);
-            block.setVs1(reg);
-            reg = reg_alias_to_name.at(peekToken(5).value);
             block.setVs2(reg);
+            reg = reg_alias_to_name.at(peekToken(5).value);
+            block.setVs1(reg);
 
             skipCurrentLine();
             intermediate_code_.emplace_back(block, true);
@@ -110,9 +110,9 @@ bool Parser::parse_O_VREG_C_VREG_C_VREG()
             reg = reg_alias_to_name.at(peekToken(1).value);
             block.setVd(reg);
             reg = reg_alias_to_name.at(peekToken(3).value);
-            block.setVs1(reg);
-            reg = reg_alias_to_name.at(peekToken(5).value);
             block.setVs2(reg);
+            reg = reg_alias_to_name.at(peekToken(5).value);
+            block.setVs1(reg);
             block.setVm(0); // Assuming the 4th vector register is used for masking, set vm to 0
 
             skipCurrentLine();
@@ -151,9 +151,9 @@ bool Parser::parse_O_VREG_C_VREG_C_GPR()
         reg = reg_alias_to_name.at(peekToken(1).value);
         block.setVd(reg);
         reg = reg_alias_to_name.at(peekToken(3).value);
-        block.setVs1(reg);
-        reg = reg_alias_to_name.at(peekToken(5).value);
         block.setRs1(reg);
+        reg = reg_alias_to_name.at(peekToken(5).value);
+        block.setVs1(reg);
 
         skipCurrentLine();
         intermediate_code_.emplace_back(block, true);
@@ -178,9 +178,9 @@ bool Parser::parse_O_VREG_C_VREG_C_GPR()
             reg = reg_alias_to_name.at(peekToken(1).value);
             block.setVd(reg);
             reg = reg_alias_to_name.at(peekToken(3).value);
-            block.setVs1(reg);
-            reg = reg_alias_to_name.at(peekToken(5).value);
             block.setRs1(reg);
+            reg = reg_alias_to_name.at(peekToken(5).value);
+            block.setVs1(reg);
             block.setVm(0); // Assuming the 4th vector register is used for masking, set vm to 0
 
             skipCurrentLine();
@@ -218,24 +218,25 @@ bool Parser::parse_O_VREG_C_VREG_C_IMM()
             std::string reg;
             reg = reg_alias_to_name.at(peekToken(1).value);
             block.setVd(reg);
-            reg = reg_alias_to_name.at(peekToken(3).value);
-            block.setVs1(reg);
             
-            int64_t imm = std::stoll(peekToken(5).value);
+            int64_t imm = std::stoll(peekToken(3).value);
             if (-16 <= imm && imm <= 15)
             {
                 block.setImm(std::to_string(imm));
             }
             else
             {
-                recordError(ParseError(peekToken(5).line_number, "Immediate value out of range"));
+                recordError(ParseError(peekToken(3).line_number, "Immediate value out of range"));
                 errors_.all_errors.emplace_back(errors::ImmediateOutOfRangeError(
                     "Immediate value out of range", "Expected: -16 <= imm <= 15", filename_,
-                    peekToken(5).line_number, peekToken(5).column_number,
-                    GetLineFromFile(filename_, peekToken(5).line_number)));
+                    peekToken(3).line_number, peekToken(3).column_number,
+                    GetLineFromFile(filename_, peekToken(3).line_number)));
                 skipCurrentLine();
                 return true;
             }
+
+            reg = reg_alias_to_name.at(peekToken(5).value);
+            block.setVs1(reg);
             
             skipCurrentLine();
             intermediate_code_.emplace_back(block, true);
@@ -259,24 +260,25 @@ bool Parser::parse_O_VREG_C_VREG_C_IMM()
             std::string reg;
             reg = reg_alias_to_name.at(peekToken(1).value);
             block.setVd(reg);
-            reg = reg_alias_to_name.at(peekToken(3).value);
-            block.setVs1(reg);
-            
-            int64_t imm = std::stoll(peekToken(5).value);
+
+            int64_t imm = std::stoll(peekToken(3).value);
             if (-16 <= imm && imm <= 15)
             {
                 block.setImm(std::to_string(imm));
             }
             else
             {
-                recordError(ParseError(peekToken(5).line_number, "Immediate value out of range"));
+                recordError(ParseError(peekToken(3).line_number, "Immediate value out of range"));
                 errors_.all_errors.emplace_back(errors::ImmediateOutOfRangeError(
                     "Immediate value out of range", "Expected: -16 <= imm <= 15", filename_,
-                    peekToken(5).line_number, peekToken(5).column_number,
-                    GetLineFromFile(filename_, peekToken(5).line_number)));
+                    peekToken(3).line_number, peekToken(3).column_number,
+                    GetLineFromFile(filename_, peekToken(3).line_number)));
                 skipCurrentLine();
                 return true;
             }
+
+            reg = reg_alias_to_name.at(peekToken(5).value);
+            block.setVs1(reg);
 
             block.setVm(0); // Assuming the 4th vector register is used for masking, set vm to 0
 

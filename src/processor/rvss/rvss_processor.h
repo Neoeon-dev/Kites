@@ -51,6 +51,8 @@ class RVSSProcessor : public ProcessorBase
     // Vector intermediate variables
     // Result registers vd .. vd+7 (an LMUL=8 group); only the first vector_result_regs_ are valid.
     std::array<VectorRegister, 8> vector_result_{};
+    uint64_t vset_new_vl_{};
+    uint64_t vset_new_vtype_{};
     uint8_t vector_result_regs_ = 0; // 0 means nothing to write back
 
     std::stack<StepDelta> undo_stack_;

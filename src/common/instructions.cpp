@@ -380,7 +380,7 @@ static const std::unordered_set<std::string> valid_instructions = {
     //RV64V
     "vsetvli","vadd.vv", "vadd.vx","vadd.vi","vsub.vv","vsub.vx","vrsub.vx","vrsub.vi",
     "vand.vv", "vand.vx","vand.vi","vor.vv", "vor.vx","vor.vi","vminu.vv", "vminu.vx","vmin.vv", "vmin.vx",
-    "vmaxu.vv", "vmax.vx","vmax.vv","vmax.vx",
+    "vmaxu.vv", "vmaxu.vx","vmax.vv","vmax.vx",
 
 };
 
