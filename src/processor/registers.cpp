@@ -29,7 +29,7 @@ void RegisterFile::Reset()
     }
     csr_[0x002] = 0b000; // Default: RNE (IEEE 754)
     csr_[0xC20] = 0x00000000; 
-    csr_[0xC21] = 0x00000000; // Default: VLEN=0, VTYPE=0
+    csr_[0xC21] = 1ULL << 63; // Default: VLEN=0, VTYPE=0
     csr_[0xC22] = architecture::VLEN_BYTES; 
     emit registerResetSignal();
 }

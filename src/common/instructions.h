@@ -407,6 +407,9 @@ struct FDSTypeInstructionEncoding
     }
 };
 
+//Vector extension 
+//instructions====================================================================
+
 struct VSETtypeInstructionEncoding
 {
     std::bitset<7> opcode;
