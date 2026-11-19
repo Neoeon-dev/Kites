@@ -95,6 +95,12 @@ class RV5StageVM_Base : public ProcessorBase
 
     void execute_csr() {};
 
+    // --- Vector (RVV) support, shared by every RV5S variant ---
+    // EX: computes the vector result of id_ex_reg_ into ex_mem_reg_.vector.
+    void execute_vector();
+    // WB: commits mem_wb_reg_.vector (vector group, or vl/vtype/rd for vset*).
+    void writeback_vector();
+
     void pipeline_memory();
     void pipeline_writeback();
     void pipeline_writeback_float();

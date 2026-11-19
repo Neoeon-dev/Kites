@@ -17,6 +17,9 @@ namespace Kites
 {
 RegisterFile::RegisterFile(QObject *parent) : QObject(parent)
 {
+    // Start from the same architectural state as after a reset (vtype.vill set,
+    // vlenb = VLEN/8, frm = RNE), so every processor model begins identically.
+    Reset();
 }
 
 void RegisterFile::Reset()

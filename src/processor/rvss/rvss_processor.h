@@ -9,6 +9,7 @@
 #include "processor/processor_base.h"
 #include "processor/processor_manager.h"
 #include "rvss_control_unit.h"
+#include "processor/vector_unit.h"
 
 #include <array>
 #include <cstdint>
@@ -48,12 +49,8 @@ class RVSSProcessor : public ProcessorBase
     uint64_t csr_write_val_{};
     uint8_t csr_uimm_{};
 
-    // Vector intermediate variables
-    // Result registers vd .. vd+7 (an LMUL=8 group); only the first vector_result_regs_ are valid.
-    std::array<VectorRegister, 8> vector_result_{};
-    uint64_t vset_new_vl_{};
-    uint64_t vset_new_vtype_{};
-    uint8_t vector_result_regs_ = 0; // 0 means nothing to write back
+    // Vector intermediate state: computed in Execute, committed in WriteBack.
+    vector_unit::PipelineData vector_result_;
 
     std::stack<StepDelta> undo_stack_;
     std::stack<StepDelta> redo_stack_;
@@ -69,7 +66,6 @@ class RVSSProcessor : public ProcessorBase
     void ExecuteDouble();
     void ExecuteCsr();
     void ExecuteVectorArithmetic();
-    void ExecuteVsetType();
     void HandleSyscall();
 
     void WriteMemory();
@@ -81,7 +77,6 @@ class RVSSProcessor : public ProcessorBase
     void WriteBackDouble();
     void WriteBackCsr();
     void WriteBackVector();
-    void WriteBackVsetType();
 
     RVSSProcessor();
     ~RVSSProcessor();

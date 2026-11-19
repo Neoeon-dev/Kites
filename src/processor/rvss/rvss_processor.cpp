@@ -5,6 +5,7 @@
  */
 
 #include "processor/rvss/rvss_processor.h"
+#include "processor/vector_unit.h"
 
 #include "common/instructions.h"
 #include "config/config.h"
@@ -423,252 +424,32 @@ void RVSSProcessor::ExecuteCsr()
 
 
 
-void RVSSProcessor::ExecuteVsetType()
-{
-    uint8_t rd  = (current_instruction_ >> 7)  & 0x1F;
-    uint8_t rs1 = (current_instruction_ >> 15) & 0x1F;
-    uint64_t vtype;
-    uint64_t avl;
-
-    if (((current_instruction_ >> 31) & 1) == 0) {               // vsetvli
-        vtype = (current_instruction_ >> 20) & 0x7FF;
-        avl = rs1 ? registers_.ReadGpr(rs1) : (rd ? UINT64_MAX : registers_.ReadCsr(0xC20));
-    } else if (((current_instruction_ >> 30) & 0b11) == 0b11) {  // vsetivli
-        vtype = (current_instruction_ >> 20) & 0x3FF;
-        avl = rs1;                                                // uimm[4:0]
-    } else {                                                      // vsetvl
-        vtype = registers_.ReadGpr((current_instruction_ >> 20) & 0x1F);
-        avl = rs1 ? registers_.ReadGpr(rs1) : (rd ? UINT64_MAX : registers_.ReadCsr(0xC20));
-    }
-
-    unsigned vsew = (vtype >> 3) & 0b111;
-    int lmul_shift = static_cast<int>(vtype & 0b111);
-    if (lmul_shift >= 4) lmul_shift -= 8;                         // sign-extend: mf8=-3 ... m8=3
-    unsigned sew = 8u << vsew;
-
-    bool ill = vsew > 3 || sew > architecture::ELEN_BITS
-            || lmul_shift == -4                                   // vlmul=100 is reserved
-            || (lmul_shift < 0 && sew > (architecture::ELEN_BITS >> -lmul_shift))
-            || (vtype >> 8) != 0;                                // reserved bits must be 0
-
-    if (ill) {
-        vset_new_vtype_ = 1ULL << 63;
-        vset_new_vl_ = 0;
-        return;
-    }
-
-    uint64_t base = architecture::VLEN_BITS / sew;
-    uint64_t vlmax = lmul_shift >= 0 ? base << lmul_shift : base >> -lmul_shift;
-    vset_new_vtype_ = vtype;
-    vset_new_vl_ = std::min(avl, vlmax);
-}
-
-//multi-cycle simd
-namespace
-{
-// funct3 values of OP-V (opcode 1010111): they pick the operand kind, not the operation.
-constexpr uint8_t kOpIVV = 0b000; // integer, vector-vector
-constexpr uint8_t kOpMVV = 0b010; // mul/div, vector-vector
-constexpr uint8_t kOpIVI = 0b011; // integer, vector-immediate
-constexpr uint8_t kOpIVX = 0b100; // integer, vector-scalar
-constexpr uint8_t kOpMVX = 0b110; // mul/div, vector-scalar
-
-enum class VectorKind
-{
-    kAlu,     // result = alu(op, a, b)
-    kRsub,    // result = b - a              (vrsub)
-    kMin,     // result = (a < b) ? a : b    (op is SLT or SLTU)
-    kMax,     // result = (a < b) ? b : a
-    kMulHigh, // result = upper SEW bits of a * b (op is the 64-bit MULH variant)
-};
-
-struct VectorOp
-{
-    bool valid = false;
-    VectorKind kind = VectorKind::kAlu;
-    alu::AluOp op = alu::AluOp::NONE;
-    bool sign_a = false; // sign-extend vs2 elements before the ALU (else zero-extend)
-    bool sign_b = false; // same for vs1 / rs1 / imm
-    bool shift = false;  // b is a shift amount: use only its low log2(SEW) bits
-};
-
-VectorOp DecodeVectorOp(uint8_t funct3, uint8_t funct6)
-{
-    using alu::AluOp;
-    using K = VectorKind;
-    const bool vv = funct3 == kOpIVV;
-    const bool vi = funct3 == kOpIVI;
-
-    if (funct3 == kOpIVV || funct3 == kOpIVI || funct3 == kOpIVX)
-    {
-        switch (funct6)
-        {
-        case 0b000000: return {true, K::kAlu, AluOp::ADD};                         // vadd
-        case 0b000010: if (!vi) return {true, K::kAlu, AluOp::SUB}; break;         // vsub (no .vi)
-        case 0b000011: if (!vv) return {true, K::kRsub, AluOp::SUB}; break;        // vrsub (no .vv)
-        case 0b000100: if (!vi) return {true, K::kMin, AluOp::SLTU}; break;        // vminu
-        case 0b000101: if (!vi) return {true, K::kMin, AluOp::SLT, true, true}; break; // vmin
-        case 0b000110: if (!vi) return {true, K::kMax, AluOp::SLTU}; break;        // vmaxu
-        case 0b000111: if (!vi) return {true, K::kMax, AluOp::SLT, true, true}; break; // vmax
-        case 0b001001: return {true, K::kAlu, AluOp::AND};                         // vand
-        case 0b001010: return {true, K::kAlu, AluOp::OR};                          // vor
-        case 0b001011: return {true, K::kAlu, AluOp::XOR};                         // vxor
-        case 0b100101: return {true, K::kAlu, AluOp::SLL, false, false, true};     // vsll
-        case 0b101000: return {true, K::kAlu, AluOp::SRL, false, false, true};     // vsrl
-        case 0b101001: return {true, K::kAlu, AluOp::SRA, true, false, true};      // vsra
-        default: break;
-        }
-    }
-    else if (funct3 == kOpMVV || funct3 == kOpMVX)
-    {
-        switch (funct6)
-        {
-        case 0b100101: return {true, K::kAlu, AluOp::MUL};                         // vmul
-        case 0b100100: return {true, K::kMulHigh, AluOp::MULHU};                   // vmulhu
-        case 0b100110: return {true, K::kMulHigh, AluOp::MULHSU, true, false};     // vmulhsu
-        case 0b100111: return {true, K::kMulHigh, AluOp::MULH, true, true};        // vmulh
-        case 0b100000: return {true, K::kAlu, AluOp::DIVU};                        // vdivu
-        case 0b100001: return {true, K::kAlu, AluOp::DIV, true, true};             // vdiv
-        case 0b100010: return {true, K::kAlu, AluOp::REMU};                        // vremu
-        case 0b100011: return {true, K::kAlu, AluOp::REM, true, true};             // vrem
-        default: break;
-        }
-    }
-    return {};
-}
-
-// Takes the low `bits` bits of `value` and sign- or zero-extends them to 64 bits.
-uint64_t ExtendBits(uint64_t value, unsigned bits, bool is_signed)
-{
-    if (bits >= 64)
-        return value;
-    const uint64_t mask = (uint64_t{1} << bits) - 1;
-    value &= mask;
-    if (is_signed && (value >> (bits - 1)) & 1)
-        value |= ~mask;
-    return value;
-}
-
-// Writes one SEW-wide element into a VectorRegister value, same layout as
-// RegisterFile::WriteVectorElement (little-endian, packed into uint64_t words).
-void SetVectorElement(VectorRegister &reg, size_t index, unsigned sew, uint64_t value)
-{
-    const size_t byte_offset = index * (sew / 8);
-    const size_t word = byte_offset / sizeof(uint64_t);
-    const size_t bit = (byte_offset % sizeof(uint64_t)) * 8;
-    const uint64_t mask = sew == 64 ? UINT64_MAX : ((uint64_t{1} << sew) - 1);
-    reg[word] = (reg[word] & ~(mask << bit)) | ((value & mask) << bit);
-}
-} // namespace
-
 void RVSSProcessor::ExecuteVectorArithmetic()
 {
-    vector_result_regs_ = 0; // nothing to write back unless we finish successfully
+    // The vector logic itself lives in vector_unit (shared with the RV5S pipelines);
+    // here we only feed it operands and keep the result until WriteBack.
+    vector_result_.reset();
 
-    const uint8_t funct6 = (current_instruction_ >> 26) & 0b111111;
-    const uint8_t funct3 = (current_instruction_ >> 12) & 0b111;
-    if (funct3 == 0b111)
+    const uint8_t rs1 = (current_instruction_ >> 15) & 0b11111;
+    const uint8_t rs2 = (current_instruction_ >> 20) & 0b11111;
+
+    if (vector_unit::IsVset(current_instruction_))
     { // vsetvli / vsetivli / vsetvl
-        ExecuteVsetType();
+        vector_result_.kind = vector_unit::PipelineData::Kind::kVset;
+        vector_result_.vset = vector_unit::ComputeVset(
+            current_instruction_, registers_.ReadGpr(rs1), registers_.ReadGpr(rs2),
+            registers_.ReadCsr(vector_unit::kVlCsr));
         return;
     }
 
-    const uint8_t vd = (current_instruction_ >> 7) & 0b11111;
-    const uint8_t vs1 = (current_instruction_ >> 15) & 0b11111; // also rs1 / imm5
-    const uint8_t vs2 = (current_instruction_ >> 20) & 0b11111;
-    const bool masked = ((current_instruction_ >> 25) & 1) == 0; // vm=0 -> use v0 as mask
-
-    const uint64_t vl = registers_.ReadCsr(0xC20);
-    const uint64_t vtype = registers_.ReadCsr(0xC21);
-
-    if ((vtype >> 63) & 1)
+    vector_result_.arith =
+        vector_unit::ExecuteArithmetic(current_instruction_, registers_, registers_.ReadGpr(rs1));
+    if (!vector_result_.arith.ok)
     {
-        std::cerr << "Illegal vector instruction: vtype.vill is set (run vsetvli first)"
-                  << std::endl;
-        return;
+        std::cerr << vector_result_.arith.error << std::endl;
+        return; // kind stays kNone: nothing to write back
     }
-
-    const unsigned sew = 8u << ((vtype >> 3) & 0b111);
-    int lmul_shift = static_cast<int>(vtype & 0b111);
-    if (lmul_shift >= 4)
-        lmul_shift -= 8; // mf8=-3 ... m8=3
-    // A register group spans 2^lmul_shift registers; fractional LMUL still uses one register.
-    const unsigned group = lmul_shift > 0 ? (1u << lmul_shift) : 1u;
-    const size_t elems_per_reg = architecture::VLEN_BITS / sew;
-
-    const VectorOp vop = DecodeVectorOp(funct3, funct6);
-    if (!vop.valid)
-    {
-        std::cerr << "Unsupported vector operation: funct6=" << static_cast<int>(funct6)
-                  << " funct3=" << static_cast<int>(funct3) << std::endl;
-        return;
-    }
-
-    // Register groups must be aligned to the group size, and v0 can't be the
-    // destination of a masked instruction (it holds the mask).
-    const bool vv = funct3 == kOpIVV || funct3 == kOpMVV;
-    if (vd % group || vs2 % group || (vv && vs1 % group) || (masked && vd == 0))
-    {
-        std::cerr << "Illegal vector instruction: misaligned register group or vd=v0 when masked"
-                  << std::endl;
-        return;
-    }
-
-    // The scalar operand for .vx / .vi forms.
-    uint64_t scalar = 0;
-    if (funct3 == kOpIVX || funct3 == kOpMVX)
-        scalar = registers_.ReadGpr(vs1);
-    else if (funct3 == kOpIVI)
-        scalar = vop.shift ? vs1                         // shifts use uimm5
-                           : ExtendBits(vs1, 5, true);   // others use simm5
-
-    // Start from the current destination values: masked-off and tail elements stay unchanged.
-    for (unsigned r = 0; r < group; ++r)
-        vector_result_[r] = registers_.ReadVreg(vd + r);
-
-    for (size_t i = 0; i < vl; ++i)
-    {
-        // Mask bit i lives in bit i of v0.
-        if (masked && ((registers_.ReadVectorElement(0, i / 8, 8) >> (i % 8)) & 1) == 0)
-            continue;
-
-        const size_t reg_off = i / elems_per_reg; // which register in the group
-        const size_t idx = i % elems_per_reg;     // which element in that register
-
-        uint64_t a = ExtendBits(registers_.ReadVectorElement(vs2 + reg_off, idx, sew), sew,
-                                vop.sign_a);
-        uint64_t b = vv ? registers_.ReadVectorElement(vs1 + reg_off, idx, sew) : scalar;
-        b = ExtendBits(b, sew, vop.sign_b);
-        if (vop.shift)
-            b &= sew - 1; // only log2(SEW) bits of the shift amount count
-
-        uint64_t res = 0;
-        switch (vop.kind)
-        {
-        case VectorKind::kAlu:
-            res = alu::Alu::execute(vop.op, a, b).first;
-            break;
-        case VectorKind::kRsub:
-            res = alu::Alu::execute(alu::AluOp::SUB, b, a).first;
-            break;
-        case VectorKind::kMin:
-            res = alu::Alu::execute(vop.op, a, b).first ? a : b;
-            break;
-        case VectorKind::kMax:
-            res = alu::Alu::execute(vop.op, a, b).first ? b : a;
-            break;
-        case VectorKind::kMulHigh:
-            if (sew == 64)
-                res = alu::Alu::execute(vop.op, a, b).first;
-            else // SEW <= 32: the full product fits in 64 bits, so shift it down ourselves
-                res = static_cast<uint64_t>(static_cast<int64_t>(a * b) >> sew);
-            break;
-        }
-
-        SetVectorElement(vector_result_[reg_off], idx, sew, res); // truncates to SEW bits
-    }
-
-    vector_result_regs_ = static_cast<uint8_t>(group);
+    vector_result_.kind = vector_unit::PipelineData::Kind::kArith;
 }
 
 // TODO: implement writeback for syscalls
@@ -1337,58 +1118,21 @@ void RVSSProcessor::WriteBackCsr()
     }
 }
 
-void RVSSProcessor::WriteBackVsetType()
+void RVSSProcessor::WriteBackVector()
 {
-    // vtype
-    uint64_t old_vtype = registers_.ReadCsr(0xC21);
-    registers_.WriteCsr(0xC21, vset_new_vtype_);
-    if (old_vtype != vset_new_vtype_)
-        current_delta_.register_changes.push_back({0xC21, 1, old_vtype, vset_new_vtype_});
-
-    // vl
-    uint64_t old_vl = registers_.ReadCsr(0xC20);
-    registers_.WriteCsr(0xC20, vset_new_vl_);
-    if (old_vl != vset_new_vl_)
-        current_delta_.register_changes.push_back({0xC20, 1, old_vl, vset_new_vl_});
-
-    // rd = new vl  (writes to x0 are ignored by WriteGpr, if it follows the usual rule)
-    uint8_t rd = (current_instruction_ >> 7) & 0b11111;
-    uint64_t old_gpr = registers_.ReadGpr(rd);
-    registers_.WriteGpr(rd, vset_new_vl_);
-    uint64_t new_gpr = registers_.ReadGpr(rd);
-    if (old_gpr != new_gpr)
-        current_delta_.register_changes.push_back({rd, 0, old_gpr, new_gpr});
-}
-
-void RVSSProcessor::WriteBackVector() 
-{
-
-    uint8_t vd = (current_instruction_ >> 7) & 0b11111;
-    uint8_t funct3 = (current_instruction_ >> 12) & 0b111;
-
-    if(funct3 == 0b111){
-        WriteBackVsetType();
-        return;
-    }
-
-    // Write the whole destination group. For undo/redo, record each changed
-    // 64-bit word as reg_type 3 with reg_index = vreg * sizeOfVector + word.
-    for (unsigned r = 0; r < vector_result_regs_; ++r)
+    using Kind = vector_unit::PipelineData::Kind;
+    if (vector_result_.kind == Kind::kVset)
     {
-        const size_t reg = vd + r;
-        const VectorRegister old_value = registers_.ReadVreg(reg);
-        registers_.WriteVreg(reg, vector_result_[r]);
-        for (size_t w = 0; w < sizeOfVector; ++w)
-        {
-            if (old_value[w] != vector_result_[r][w])
-            {
-                current_delta_.register_changes.push_back(
-                    {static_cast<unsigned int>(reg * sizeOfVector + w), 3, old_value[w],
-                     vector_result_[r][w]});
-            }
-        }
+        const uint8_t rd = (current_instruction_ >> 7) & 0b11111;
+        vector_unit::CommitVset(registers_, rd, vector_result_.vset,
+                                current_delta_.register_changes);
     }
-    vector_result_regs_ = 0;
+    else if (vector_result_.kind == Kind::kArith)
+    {
+        vector_unit::CommitGroup(registers_, vector_result_.arith,
+                                 current_delta_.register_changes);
+    }
+    vector_result_.reset();
 }
 
 void RVSSProcessor::DebugRun()
@@ -1552,9 +1296,7 @@ void RVSSProcessor::Undo()
         }
         case 3:
         { // Vector register word: reg_index = vreg * sizeOfVector + word
-            VectorRegister v = registers_.ReadVreg(change.reg_index / sizeOfVector);
-            v[change.reg_index % sizeOfVector] = change.old_value;
-            registers_.WriteVreg(change.reg_index / sizeOfVector, v);
+            vector_unit::ApplyVectorWord(registers_, change.reg_index, change.old_value);
             break;
         }
         default:
@@ -1631,9 +1373,7 @@ void RVSSProcessor::Redo()
         }
         case 3:
         { // Vector register word: reg_index = vreg * sizeOfVector + word
-            VectorRegister v = registers_.ReadVreg(change.reg_index / sizeOfVector);
-            v[change.reg_index % sizeOfVector] = change.new_value;
-            registers_.WriteVreg(change.reg_index / sizeOfVector, v);
+            vector_unit::ApplyVectorWord(registers_, change.reg_index, change.new_value);
             break;
         }
         default:

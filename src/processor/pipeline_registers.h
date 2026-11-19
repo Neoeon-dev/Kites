@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include "processor/processor_constants.h"
+#include "processor/vector_unit.h"
 namespace Kites
 {
 // --- Data passed from Fetch (IF) to Decode (ID) ---
@@ -117,6 +118,9 @@ struct EX_MEM_Register
     bool prev_mem_read  {false};  // Previous mem_read signal (for highlighting purposes)
     bool prev_mem_write {false};  // Previous mem_write signal (for highlighting purposes)
 
+    // --- Vector result (computed in EX, committed in WB); empty for scalar instructions ---
+    vector_unit::PipelineData vector {};
+
     void reset()
     {
         pc          = INVALID_PC;
@@ -145,6 +149,7 @@ struct EX_MEM_Register
         mem_write       = false;
         prev_mem_read   = false;
         prev_mem_write  = false;
+        vector.reset();
     }
 };
 
@@ -177,6 +182,10 @@ struct MEM_WB_Register
     bool prev_mem_to_reg {false};  // Previous mem_to_reg signal (for forwarding)
     bool prev_reg_write  {false};  // Previous reg_write signal (for forwarding)
     bool prev_freg_write {false};  // Previous FPR write enable (for forwarding)
+
+    // --- Vector result, passed through from EX/MEM; committed in WB ---
+    vector_unit::PipelineData vector {};
+
     void reset()
     {
         pc          = INVALID_PC;
@@ -204,6 +213,7 @@ struct MEM_WB_Register
         prev_mem_to_reg = false;
         prev_reg_write  = false;
         prev_freg_write = false;
+        vector.reset();
     }
 };
 }// namespace Kites

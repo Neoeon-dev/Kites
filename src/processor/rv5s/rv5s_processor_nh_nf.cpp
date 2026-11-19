@@ -6,6 +6,10 @@
  * * Control Hazards (JAL/JALR, B-Type) are AUTOMATICALLY handled by the pipeline.
  * * Control Penalties: JAL/JALR = 1 bubble (EX stage); B-Type = 2 bubbles (MEM stage, 3-cycle
  * penalty).
+ * * Vector (RVV): computed in EX by vector_unit, carried in EX/MEM and MEM/WB, committed in WB.
+ *   GPR operands (.vx scalar, vsetvli AVL) are read in ID like any scalar source (2 NOPs after
+ *   the producer). Vector registers, vl and vtype are read in EX, so a dependency on an earlier
+ *   vector instruction or vset* needs 1 NOP.
  * * @author Atharva and Harshit
  */
 #include "processor/rv5s/rv5s_processor_nh_nf.h"
@@ -14,6 +18,7 @@
 #include "common/debug_colors.h"
 #include "ui/processor_tab/processor_designs/rv5s_processor_nh_nf_circuit_scene.h"
 #include "processor/alu.h"
+#include "processor/vector_unit.h"
 #include "processor/processor_base.h" // For ImmGenerator, etc.
 
 
@@ -216,16 +221,17 @@ void RV5StageProcessorNHNF::pipeline_execute()
     uint64_t alu_in2 =
         id_ex_reg_.alu_src ? static_cast<uint64_t>(id_ex_reg_.imm) : id_ex_reg_.reg2_data;
 
-    // Get the specific ALU operation
-    alu::AluOp alu_operation =
-        control_unit_.GetAluSignal(id_ex_reg_.instruction, id_ex_reg_.alu_op > 0);
-
     // Execute the operation
     bool overflow; // Ignored for this simple model
     uint64_t alu_result = 0;
     const bool is_f_instruction = instruction_set::isFInstruction(instruction);
     const bool is_d_instruction = instruction_set::isDInstruction(instruction);
-    if (is_f_instruction)
+    const bool is_vector_instruction = vector_unit::IsOpV(instruction);
+    if (is_vector_instruction)
+    {
+        // Handled by execute_vector() below, once EX/MEM is latched.
+    }
+    else if (is_f_instruction)
     {
         alu_result = pipeline_execute_float();
     }
@@ -235,6 +241,9 @@ void RV5StageProcessorNHNF::pipeline_execute()
     }
     else
     {
+        // Get the specific ALU operation
+        alu::AluOp alu_operation =
+            control_unit_.GetAluSignal(id_ex_reg_.instruction, id_ex_reg_.alu_op > 0);
         std::tie(alu_result, overflow) = alu::Alu::execute(alu_operation, alu_in1, alu_in2);
     }
     if ((id_ex_reg_.instruction & 0b1111111) == 0b0110111) // lui
@@ -265,6 +274,12 @@ void RV5StageProcessorNHNF::pipeline_execute()
     ex_mem_reg_.prev_branch_taken = ex_mem_reg_.branch_taken;
     ex_mem_reg_.branch_taken = false;
     ex_mem_reg_.branch_target_pc = 0;
+
+    // Vector result (empty for scalar instructions so nothing stale reaches WB)
+    if (is_vector_instruction)
+        execute_vector();
+    else
+        ex_mem_reg_.vector.reset();
 
     // --- Conditional Branch Check (B-type: BLT, BGE, etc.) ---
     if (id_ex_reg_.branch && opcode == 0b1100011)

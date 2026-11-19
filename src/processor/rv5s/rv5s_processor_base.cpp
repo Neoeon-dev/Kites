@@ -1,3 +1,4 @@
+#include "processor/vector_unit.h"
 #include "common/debug_colors.h"
 #include "common/instructions.h"
 #include "processor/rv5s/rv5s_processor_base.h"
@@ -458,6 +459,8 @@ void RV5StageVM_Base::pipeline_memory()
     mem_wb_reg_.frd          = ex_mem_reg_.frd;
     mem_wb_reg_.f_alu_result = ex_mem_reg_.f_alu_result;
     mem_wb_reg_.freg_write   = ex_mem_reg_.freg_write;
+    // Vector result rides along unchanged (vector loads/stores would act here)
+    mem_wb_reg_.vector       = ex_mem_reg_.vector;
 
     bool is_F_Instruction = instruction_set::isFInstruction(mem_wb_reg_.instruction);
     bool is_D_Instruction = instruction_set::isDInstruction(mem_wb_reg_.instruction);
@@ -578,6 +581,12 @@ void RV5StageVM_Base::pipeline_writeback()
     if (mem_wb_reg_.pc != INVALID_PC)
     {
         instructions_retired_++;
+    }
+
+    if (mem_wb_reg_.vector.kind != vector_unit::PipelineData::Kind::kNone)
+    {
+        writeback_vector();
+        return;
     }
 
     if (!mem_wb_reg_.reg_write)
@@ -812,6 +821,48 @@ uint64_t RV5StageVM_Base::execute_double()
     return alu_result;
 }
 
+void RV5StageVM_Base::execute_vector()
+{
+    // Operands: GPR rs1/rs2 were read in ID (id_ex_reg_.reg1_data / reg2_data), like any
+    // scalar source. Vector registers, vl and vtype are read here in EX from the
+    // register file, since a register group is too large to latch in ID/EX.
+    const uint32_t instruction = id_ex_reg_.instruction;
+    auto &out = ex_mem_reg_.vector;
+    out.reset();
+
+    if (vector_unit::IsVset(instruction))
+    {
+        out.kind = vector_unit::PipelineData::Kind::kVset;
+        out.vset = vector_unit::ComputeVset(instruction, id_ex_reg_.reg1_data,
+                                            id_ex_reg_.reg2_data,
+                                            registers_.ReadCsr(vector_unit::kVlCsr));
+        return;
+    }
+
+    out.arith = vector_unit::ExecuteArithmetic(instruction, registers_, id_ex_reg_.reg1_data);
+    if (!out.arith.ok)
+    {
+        std::cerr << out.arith.error << std::endl;
+        out.reset(); // nothing to commit
+        return;
+    }
+    out.kind = vector_unit::PipelineData::Kind::kArith;
+}
+
+void RV5StageVM_Base::writeback_vector()
+{
+    const auto &data = mem_wb_reg_.vector;
+    if (data.kind == vector_unit::PipelineData::Kind::kVset)
+    {
+        const uint8_t rd = (mem_wb_reg_.instruction >> 7) & 0x1F;
+        vector_unit::CommitVset(registers_, rd, data.vset, current_delta_.register_changes);
+    }
+    else if (data.kind == vector_unit::PipelineData::Kind::kArith)
+    {
+        vector_unit::CommitGroup(registers_, data.arith, current_delta_.register_changes);
+    }
+}
+
 bool RV5StageVM_Base::is_pipeline_drained() const
 {
     // A stage holds a real instruction (possibly an actual `nop`) unless its PC is
@@ -862,6 +913,9 @@ void RV5StageVM_Base::Undo()
             break;
         case 2:
             registers_.WriteFpr(change.reg_index, change.old_value);
+            break;
+        case vector_unit::kRegTypeVectorWord:
+            vector_unit::ApplyVectorWord(registers_, change.reg_index, change.old_value);
             break;
         default:
             break;
@@ -925,6 +979,9 @@ void RV5StageVM_Base::Redo()
             break;
         case 2:
             registers_.WriteFpr(change.reg_index, change.new_value);
+            break;
+        case vector_unit::kRegTypeVectorWord:
+            vector_unit::ApplyVectorWord(registers_, change.reg_index, change.new_value);
             break;
         default:
             break;
