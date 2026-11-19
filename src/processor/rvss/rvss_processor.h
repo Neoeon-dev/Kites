@@ -10,6 +10,7 @@
 #include "processor/processor_manager.h"
 #include "rvss_control_unit.h"
 
+#include <array>
 #include <cstdint>
 #include <iostream>
 #include <stack>
@@ -46,6 +47,11 @@ class RVSSProcessor : public ProcessorBase
     uint64_t csr_old_value_{};
     uint64_t csr_write_val_{};
     uint8_t csr_uimm_{};
+
+    // Vector intermediate variables
+    // Result registers vd .. vd+7 (an LMUL=8 group); only the first vector_result_regs_ are valid.
+    std::array<VectorRegister, 8> vector_result_{};
+    uint8_t vector_result_regs_ = 0; // 0 means nothing to write back
 
     std::stack<StepDelta> undo_stack_;
     std::stack<StepDelta> redo_stack_;
