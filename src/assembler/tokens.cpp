@@ -58,6 +58,14 @@ std::string tokenTypeToString(TokenType type)
         return "RPAREN      ";
     case TokenType::STRING:
         return "STRING      ";
+    case TokenType::SEW:
+        return "SEW         ";
+    case TokenType::LMUL:
+        return "LMUL        ";
+    case TokenType::TAIL:
+        return "TAIL        ";
+    case TokenType::MASK:
+        return "MASK        ";
     case TokenType::RM:
         return "RM          ";
     default:

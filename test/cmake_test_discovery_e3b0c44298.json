@@ -1,5 +1,5 @@
 {
-  "tests": 159,
+  "tests": 174,
   "name": "AllTests",
   "testsuites": [
     {
@@ -8,27 +8,27 @@
       "testsuite": [
         {
           "name": "MatrixMultiplyUsesL2OnL1Misses_RVSS",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
           "line": 146
         },
         {
           "name": "MatrixMultiplyUsesL2OnL1Misses_RV5_NH_NF",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
           "line": 151
         },
         {
           "name": "MatrixMultiplyUsesL2OnL1Misses_RV5_NH_F",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
           "line": 156
         },
         {
           "name": "MatrixMultiplyUsesL2OnL1Misses_RV5_H_NF",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
           "line": 161
         },
         {
           "name": "MatrixMultiplyUsesL2OnL1Misses_RV5_H_F",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_matrix_mul_l1_l2_test.cpp",
           "line": 166
         }
       ]
@@ -39,27 +39,27 @@
       "testsuite": [
         {
           "name": "BasicEvictionOrder",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 16
         },
         {
           "name": "HitsDoNotAffectEvictionOrder",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 42
         },
         {
           "name": "CircularEvictionOrder",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 71
         },
         {
           "name": "FIFOWithWriteBack",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 92
         },
         {
           "name": "FIFOWithMultipleSets",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 111
         }
       ]
@@ -70,17 +70,17 @@
       "testsuite": [
         {
           "name": "WritePromotesToMostRecent",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 202
         },
         {
           "name": "LRUWithWriteBack",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 227
         },
         {
           "name": "LRUWithMultipleSets",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 249
         }
       ]
@@ -91,7 +91,7 @@
       "testsuite": [
         {
           "name": "LRUBetterThanFIFOOnRepeatingPattern",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_policies_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_policies_test.cpp",
           "line": 329
         }
       ]
@@ -102,132 +102,132 @@
       "testsuite": [
         {
           "name": "WriteThenReadByte",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 30
         },
         {
           "name": "WriteThenReadHalfWord",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 36
         },
         {
           "name": "WriteThenReadWord",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 42
         },
         {
           "name": "WriteThenReadDoubleWord",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 48
         },
         {
           "name": "MultipleAddresses",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 54
         },
         {
           "name": "UnwrittenAddressReadsZero",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 64
         },
         {
           "name": "OverwriteSameAddress",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 69
         },
         {
           "name": "HitCountOnRepeatedRead",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 77
         },
         {
           "name": "HitRateCalculation",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 87
         },
         {
           "name": "StatsResetOnReset",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 97
         },
         {
           "name": "WriteBackDoesNotUpdateMemoryImmediately",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 107
         },
         {
           "name": "WriteBackFlushesToMemory",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 113
         },
         {
           "name": "WriteThroughImmediatelyUpdatesMemory",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 120
         },
         {
           "name": "WriteThroughLineNotDirty",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 134
         },
         {
           "name": "NoWriteAllocateGoesDirectToMemory",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 146
         },
         {
           "name": "NoWriteAllocateDoesNotBringLineIntoCache",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 157
         },
         {
           "name": "EvictionWritesBackDirtyLine",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 173
         },
         {
           "name": "CleanLineEvictedWithoutWriteback",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 189
         },
         {
           "name": "ResetInvalidatesAllLines",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 203
         },
         {
           "name": "FlushWritesAllDirtyLines",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 214
         },
         {
           "name": "FlushThenInvalidates",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 225
         },
         {
           "name": "CrossLineWriteDoesNotCorruptUnrelatedMemory",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 234
         },
         {
           "name": "PeekByteSeesDirtyDataWithoutSideEffects",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 258
         },
         {
           "name": "LineCrossingReadDoesNotDuplicateDirtyLine",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 289
         },
         {
           "name": "LineCrossingReadDoesNotEvictItsOwnLine",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 309
         },
         {
           "name": "NoWriteAllocatePartialHitUpdatesCachedLine",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 324
         }
       ]
@@ -238,7 +238,7 @@
       "testsuite": [
         {
           "name": "LRUEvictsLeastRecentlyUsed",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 349
         }
       ]
@@ -249,27 +249,27 @@
       "testsuite": [
         {
           "name": "WriteGoesToL1",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 427
         },
         {
           "name": "WriteBackNotInMemoryUntilFlush",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 433
         },
         {
           "name": "L1FlushPropagatesL2",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 439
         },
         {
           "name": "FullFlushPropagatesMemory",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 446
         },
         {
           "name": "L1MissFetchesFromL2",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/cache_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/cache_test.cpp",
           "line": 454
         }
       ]
@@ -280,12 +280,12 @@
       "testsuite": [
         {
           "name": "LoadedLFUEvictsLeastFrequentlyUsed",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/custom_policy_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/custom_policy_test.cpp",
           "line": 36
         },
         {
           "name": "AssemblyProgramMatchesLFUPatternAt1000",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/custom_policy_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/custom_policy_test.cpp",
           "line": 67
         }
       ]
@@ -296,12 +296,12 @@
       "testsuite": [
         {
           "name": "SingleCycle",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/div_rem_edge_cases_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/div_rem_edge_cases_test.cpp",
           "line": 161
         },
         {
           "name": "FiveStageHazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/div_rem_edge_cases_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/div_rem_edge_cases_test.cpp",
           "line": 166
         }
       ]
@@ -312,17 +312,17 @@
       "testsuite": [
         {
           "name": "NopFollowedByInstruction",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/operandless_instruction_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/operandless_instruction_test.cpp",
           "line": 30
         },
         {
           "name": "RetFollowedByInstruction",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/operandless_instruction_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/operandless_instruction_test.cpp",
           "line": 40
         },
         {
           "name": "MnemonicAsLabelOperandStillWorks",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/operandless_instruction_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/operandless_instruction_test.cpp",
           "line": 55
         }
       ]
@@ -333,22 +333,22 @@
       "testsuite": [
         {
           "name": "SingleCycle",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/pseudo_branch_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/pseudo_branch_test.cpp",
           "line": 109
         },
         {
           "name": "FiveStageHazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/pseudo_branch_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/pseudo_branch_test.cpp",
           "line": 114
         },
         {
           "name": "BackwardLabelSingleCycle",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/pseudo_branch_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/pseudo_branch_test.cpp",
           "line": 119
         },
         {
           "name": "BackwardLabelFiveStageHazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/pseudo_branch_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/pseudo_branch_test.cpp",
           "line": 124
         }
       ]
@@ -359,8 +359,59 @@
       "testsuite": [
         {
           "name": "KeepsSourceLineWhenArgumentCountDoesNotMatch",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/pseudo_inst_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/pseudo_inst_test.cpp",
           "line": 80
+        }
+      ]
+    },
+    {
+      "name": "VectorRegisterFile",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "initializesRegistersToZero",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 7
+        },
+        {
+          "name": "readsAndWrites8BitElements",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 22
+        },
+        {
+          "name": "readsAndWrites32BitElements",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 43
+        },
+        {
+          "name": "supports64BitElements",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 61
+        },
+        {
+          "name": "rejectsInvalidRegisterIndex",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 75
+        },
+        {
+          "name": "rejectsInvalidElementIndex",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 85
+        },
+        {
+          "name": "rejectsUnsupportedSEW",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 96
+        },
+        {
+          "name": "resetClearsVectorRegisters",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 106
+        },
+        {
+          "name": "ReadsMultipleRegisters",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/regist_test.cpp",
+          "line": 117
         }
       ]
     },
@@ -370,27 +421,27 @@
       "testsuite": [
         {
           "name": "SingleCycle",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_control_flow_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_control_flow_test.cpp",
           "line": 97
         },
         {
           "name": "HazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_control_flow_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_control_flow_test.cpp",
           "line": 102
         },
         {
           "name": "HazardNoForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_control_flow_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_control_flow_test.cpp",
           "line": 107
         },
         {
           "name": "NoHazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_control_flow_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_control_flow_test.cpp",
           "line": 112
         },
         {
           "name": "NoHazardNoForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_control_flow_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_control_flow_test.cpp",
           "line": 117
         }
       ]
@@ -401,7 +452,7 @@
       "testsuite": [
         {
           "name": "arithmetic_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 68
         }
       ]
@@ -412,7 +463,7 @@
       "testsuite": [
         {
           "name": "arithmetic_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 77
         }
       ]
@@ -423,7 +474,7 @@
       "testsuite": [
         {
           "name": "arithmetic_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 86
         }
       ]
@@ -434,7 +485,7 @@
       "testsuite": [
         {
           "name": "arithmetic_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 95
         }
       ]
@@ -445,7 +496,7 @@
       "testsuite": [
         {
           "name": "compare_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 110
         }
       ]
@@ -456,7 +507,7 @@
       "testsuite": [
         {
           "name": "compare_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 122
         }
       ]
@@ -467,7 +518,7 @@
       "testsuite": [
         {
           "name": "compare_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 134
         }
       ]
@@ -478,7 +529,7 @@
       "testsuite": [
         {
           "name": "compare_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 146
         }
       ]
@@ -489,7 +540,7 @@
       "testsuite": [
         {
           "name": "memory_roundtrip_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 164
         }
       ]
@@ -500,7 +551,7 @@
       "testsuite": [
         {
           "name": "memory_roundtrip_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 172
         }
       ]
@@ -511,7 +562,7 @@
       "testsuite": [
         {
           "name": "memory_roundtrip_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 180
         }
       ]
@@ -522,7 +573,7 @@
       "testsuite": [
         {
           "name": "memory_roundtrip_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 188
         }
       ]
@@ -533,7 +584,7 @@
       "testsuite": [
         {
           "name": "sign_inject_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 202
         }
       ]
@@ -544,7 +595,7 @@
       "testsuite": [
         {
           "name": "sign_inject_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 210
         }
       ]
@@ -555,7 +606,7 @@
       "testsuite": [
         {
           "name": "sign_inject_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 218
         }
       ]
@@ -566,7 +617,7 @@
       "testsuite": [
         {
           "name": "sign_inject_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 226
         }
       ]
@@ -577,7 +628,7 @@
       "testsuite": [
         {
           "name": "convert_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 240
         }
       ]
@@ -588,7 +639,7 @@
       "testsuite": [
         {
           "name": "convert_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 248
         }
       ]
@@ -599,7 +650,7 @@
       "testsuite": [
         {
           "name": "convert_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 256
         }
       ]
@@ -610,7 +661,7 @@
       "testsuite": [
         {
           "name": "convert_nop",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 264
         }
       ]
@@ -621,7 +672,7 @@
       "testsuite": [
         {
           "name": "chain_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 278
         }
       ]
@@ -632,7 +683,7 @@
       "testsuite": [
         {
           "name": "chain_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 287
         }
       ]
@@ -643,7 +694,7 @@
       "testsuite": [
         {
           "name": "load_chain_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 302
         }
       ]
@@ -654,7 +705,7 @@
       "testsuite": [
         {
           "name": "load_chain_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 310
         }
       ]
@@ -665,7 +716,7 @@
       "testsuite": [
         {
           "name": "mixed_gpr_fpr_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 324
         }
       ]
@@ -676,7 +727,7 @@
       "testsuite": [
         {
           "name": "arith_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 342
         }
       ]
@@ -687,7 +738,7 @@
       "testsuite": [
         {
           "name": "arith_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 350
         }
       ]
@@ -698,7 +749,7 @@
       "testsuite": [
         {
           "name": "compare_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 364
         }
       ]
@@ -709,7 +760,7 @@
       "testsuite": [
         {
           "name": "store_fwd_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 388
         }
       ]
@@ -720,7 +771,7 @@
       "testsuite": [
         {
           "name": "store_fwd_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 395
         }
       ]
@@ -731,7 +782,7 @@
       "testsuite": [
         {
           "name": "two_dist_fwd_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 408
         }
       ]
@@ -742,7 +793,7 @@
       "testsuite": [
         {
           "name": "two_dist_fwd_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 416
         }
       ]
@@ -753,7 +804,7 @@
       "testsuite": [
         {
           "name": "sign_inject_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 430
         }
       ]
@@ -764,7 +815,7 @@
       "testsuite": [
         {
           "name": "sign_inject_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 438
         }
       ]
@@ -775,7 +826,7 @@
       "testsuite": [
         {
           "name": "minmax_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 452
         }
       ]
@@ -786,7 +837,7 @@
       "testsuite": [
         {
           "name": "minmax_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 461
         }
       ]
@@ -797,7 +848,7 @@
       "testsuite": [
         {
           "name": "waw_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 476
         }
       ]
@@ -808,7 +859,7 @@
       "testsuite": [
         {
           "name": "waw_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 482
         }
       ]
@@ -819,7 +870,7 @@
       "testsuite": [
         {
           "name": "convert_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_f_extension_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_f_extension_test.cpp",
           "line": 494
         }
       ]
@@ -830,12 +881,12 @@
       "testsuite": [
         {
           "name": "fp_baseline_no_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 71
         },
         {
           "name": "fp_memory_roundtrip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 91
         }
       ]
@@ -846,37 +897,37 @@
       "testsuite": [
         {
           "name": "fp_baseline_no_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 78
         },
         {
           "name": "fp_memory_roundtrip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 99
         },
         {
           "name": "fp_fr_fr_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 114
         },
         {
           "name": "fp_fl_fu_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 134
         },
         {
           "name": "fp_fr_fs_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 154
         },
         {
           "name": "fp_fl_fs_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 174
         },
         {
           "name": "f_extension_existing_test_on_h_f",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 192
         }
       ]
@@ -887,22 +938,22 @@
       "testsuite": [
         {
           "name": "fp_fr_fr_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 120
         },
         {
           "name": "fp_fl_fu_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 140
         },
         {
           "name": "fp_fr_fs_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 160
         },
         {
           "name": "fp_fl_fs_hazard",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_fp_test.cpp",
           "line": 180
         }
       ]
@@ -913,37 +964,37 @@
       "testsuite": [
         {
           "name": "r_r_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_f_test.cpp",
           "line": 44
         },
         {
           "name": "l_u_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_f_test.cpp",
           "line": 53
         },
         {
           "name": "r_s_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_f_test.cpp",
           "line": 62
         },
         {
           "name": "l_s_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_f_test.cpp",
           "line": 71
         },
         {
           "name": "r_b_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_f_test.cpp",
           "line": 80
         },
         {
           "name": "l_b_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_f_test.cpp",
           "line": 89
         },
         {
           "name": "r_m_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_f_test.cpp",
           "line": 98
         }
       ]
@@ -954,42 +1005,42 @@
       "testsuite": [
         {
           "name": "test1",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 38
         },
         {
           "name": "r_r_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 48
         },
         {
           "name": "l_u_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 57
         },
         {
           "name": "r_s_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 66
         },
         {
           "name": "l_s_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 75
         },
         {
           "name": "r_b_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 84
         },
         {
           "name": "l_b_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 93
         },
         {
           "name": "r_m_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_h_nf_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_h_nf_test.cpp",
           "line": 102
         }
       ]
@@ -1000,37 +1051,37 @@
       "testsuite": [
         {
           "name": "r_r_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_f_test.cpp",
           "line": 42
         },
         {
           "name": "l_u_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_f_test.cpp",
           "line": 51
         },
         {
           "name": "r_s_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_f_test.cpp",
           "line": 60
         },
         {
           "name": "l_s_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_f_test.cpp",
           "line": 69
         },
         {
           "name": "r_b_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_f_test.cpp",
           "line": 78
         },
         {
           "name": "l_b_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_f_test.cpp",
           "line": 87
         },
         {
           "name": "r_m_forwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_f_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_f_test.cpp",
           "line": 96
         }
       ]
@@ -1041,12 +1092,12 @@
       "testsuite": [
         {
           "name": "f_extension_memory_multi_slot_and_overwrite",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_nf_fp_memory_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_nf_fp_memory_test.cpp",
           "line": 20
         },
         {
           "name": "d_extension_memory_multi_slot_and_overwrite",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_nf_fp_memory_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_nf_fp_memory_test.cpp",
           "line": 33
         }
       ]
@@ -1057,12 +1108,12 @@
       "testsuite": [
         {
           "name": "f_extension_arithmetic_and_memory_roundtrip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_nf_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_nf_fp_test.cpp",
           "line": 32
         },
         {
           "name": "d_extension_arithmetic_and_memory_roundtrip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_nh_nf_fp_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_nh_nf_fp_test.cpp",
           "line": 46
         }
       ]
@@ -1073,12 +1124,12 @@
       "testsuite": [
         {
           "name": "basic_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 101
         },
         {
           "name": "memory_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 121
         }
       ]
@@ -1089,12 +1140,12 @@
       "testsuite": [
         {
           "name": "basic_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 106
         },
         {
           "name": "memory_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 127
         }
       ]
@@ -1105,12 +1156,12 @@
       "testsuite": [
         {
           "name": "basic_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 111
         },
         {
           "name": "memory_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 133
         }
       ]
@@ -1121,12 +1172,12 @@
       "testsuite": [
         {
           "name": "basic_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 116
         },
         {
           "name": "memory_round_trip",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_undo_redo_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_undo_redo_test.cpp",
           "line": 139
         }
       ]
@@ -1137,22 +1188,22 @@
       "testsuite": [
         {
           "name": "HazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_writeback_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_writeback_test.cpp",
           "line": 74
         },
         {
           "name": "HazardNoForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_writeback_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_writeback_test.cpp",
           "line": 79
         },
         {
           "name": "NoHazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_writeback_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_writeback_test.cpp",
           "line": 84
         },
         {
           "name": "NoHazardNoForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/rv5s_writeback_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/rv5s_writeback_test.cpp",
           "line": 89
         }
       ]
@@ -1163,39 +1214,81 @@
       "testsuite": [
         {
           "name": "SingleCycle",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/store_cache_stats_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/store_cache_stats_test.cpp",
           "line": 45
         },
         {
           "name": "HazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/store_cache_stats_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/store_cache_stats_test.cpp",
           "line": 50
         },
         {
           "name": "HazardNoForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/store_cache_stats_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/store_cache_stats_test.cpp",
           "line": 55
         },
         {
           "name": "NoHazardForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/store_cache_stats_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/store_cache_stats_test.cpp",
           "line": 60
         },
         {
           "name": "NoHazardNoForwarding",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/store_cache_stats_test.cpp",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/store_cache_stats_test.cpp",
           "line": 65
         }
       ]
     },
     {
       "name": "VectorRegisterLexer",
-      "tests": 1,
+      "tests": 2,
       "testsuite": [
         {
-          "name": "recognizesVectorRegisters",
-          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_register_lexer_test.cpp",
-          "line": 9
+          "name": "recognizesValidVectorRegisters",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/vector_register_lexer_test.cpp",
+          "line": 48
+        },
+        {
+          "name": "rejectsOutOfRangeRegister",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/vector_register_lexer_test.cpp",
+          "line": 67
+        }
+      ]
+    },
+    {
+      "name": "VectorRegisterParser",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "parsesVectorAdd",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/vector_register_parser_test.cpp",
+          "line": 10
+        },
+        {
+          "name": "generatesVaddVvMachineCode",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/vector_register_parser_test.cpp",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "name": "VsetvliAssembler",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "GeneratesExpectedMachineCode",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/vector_vsetvli_test.cpp",
+          "line": 26
+        },
+        {
+          "name": "CreatesCorrectICUnit",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/vector_vsetvli_test.cpp",
+          "line": 37
+        },
+        {
+          "name": "DisassemblesCorrectly",
+          "file": "\/home\/noshik\/Documents\/Vector_Extension\/Kites\/test\/vector_vsetvli_test.cpp",
+          "line": 53
         }
       ]
     }

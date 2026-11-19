@@ -407,6 +407,17 @@ struct FDSTypeInstructionEncoding
     }
 };
 
+struct VSETtypeInstructionEncoding
+{
+    std::bitset<7> opcode;
+    std::bitset<3> funct3;
+
+    VSETtypeInstructionEncoding(unsigned int opcode, unsigned int funct3)
+        : opcode(opcode), funct3(funct3)
+    {
+    }
+};
+
 struct VectorArithmeticInstructionEncoding{
     std::bitset<7> opcode;
     std::bitset<3> funct3;
@@ -460,7 +471,8 @@ enum class SyntaxType
                          ///< floating-point-register
     O_FPR_C_I_LP_GPR_RP, ///< Opcode floating-point-register , immediate , lparen ( general-register
                          ///< ) rparen
-    O_VEC_C_VEC_C_VEC
+
+    O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK ///< Opcode general-register , general-register , <SEW>, <LMUL>, <tail>, <mask>
 };
 
 extern std::unordered_map<std::string, RTypeInstructionEncoding> R_type_instruction_encoding_map;
@@ -490,6 +502,8 @@ extern std::unordered_map<std::string, FDITypeInstructionEncoding>
     F_D_I_type_instruction_encoding_map;
 extern std::unordered_map<std::string, FDSTypeInstructionEncoding>
     F_D_S_type_instruction_encoding_map;
+extern std::unordered_map<std::string, VSETtypeInstructionEncoding>
+    VSET_type_instruction_encoding_map;
 extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
     V_type_instruction_encoding_map;
 extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
@@ -513,7 +527,6 @@ bool isValidSTypeInstruction(const std::string &instruction);
 bool isValidBTypeInstruction(const std::string &instruction);
 bool isValidUTypeInstruction(const std::string &instruction);
 bool isValidJTypeInstruction(const std::string &instruction);
-bool isValidVTypeInstruction(const std::string &instruction);
 
 bool isValidPseudoInstruction(const std::string &instruction);
 
@@ -530,6 +543,8 @@ bool isValidFDR3TypeInstruction(const std::string &instruction);
 bool isValidFDR4TypeInstruction(const std::string &instruction);
 bool isValidFDITypeInstruction(const std::string &instruction);
 bool isValidFDSTypeInstruction(const std::string &instruction);
+
+bool isValidVSETtypeInstruction(const std::string &instruction);
 
 bool isFInstruction(const uint32_t &instruction);
 bool isDInstruction(const uint32_t &instruction);
