@@ -68,6 +68,13 @@ void CompletionProvider::loadRegisters()
         registers << name;
     for (const char *alias : register_names::kFprAliases)
         registers << alias;
+    for (const char *name : register_names::kVregAliases)
+        registers << name;
+
+    // vsetvli operands and the vector mask operand.
+    registers << "e8" << "e16" << "e32" << "e64"
+              << "mf8" << "mf4" << "mf2" << "m1" << "m2" << "m4" << "m8"
+              << "ta" << "tu" << "ma" << "mu" << "v0.t";
     m_registers = registers;
 }
 

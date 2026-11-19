@@ -24,6 +24,7 @@ X(MInstruction, "MInstruction")\
 X(FInstruction, "FInstruction")\
 X(DInstruction, "DInstruction")\
 X(PseudoInstruction, "PseudoInstruction")\
+X(VInstruction, "VInstruction")\
 
 enum class SyntaxStyle
 {
@@ -32,6 +33,7 @@ enum class SyntaxStyle
     //wow this magic!!
     #undef X
     Register,
+    VectorOption, ///< vsetvli operands (e32, m1, ta, ma, ...) and the v0.t mask
     Comment,
     Label,
     NumberLiteral,

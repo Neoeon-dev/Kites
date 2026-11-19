@@ -20,6 +20,8 @@
             "mInstruction": "#c586c0",
             "fInstruction": "#c586c0",
             "dInstruction": "#dcdcaa",
+            "vInstruction": "#4ec9b0",
+            "vectorOption": "#ce9178",
             "pseudoInstruction": "#ff8c00",
             "register": "#9cdcfe",
             "comment": "#6a9955",

@@ -103,7 +103,8 @@ void SyntaxHighlighter::setRegisterHighlightingRules()
         "zero|ra|sp|gp|tp|"
         "t[0-6]|"
         "s(?:[0-9]|1[01])|"
-        "a[0-7]"
+        "a[0-7]|"
+        "v(?:[0-9]|[12][0-9]|3[01])"
         ")\\b"
     };
 
@@ -111,6 +112,18 @@ void SyntaxHighlighter::setRegisterHighlightingRules()
     rule.pattern = QRegularExpression(registerPattern);
     rule.style = SyntaxStyle::Register;
     m_highlightRules.push_back(std::move(rule));
+
+    // vsetvli operands (SEW, LMUL, tail/mask policy) and the "v0.t" mask operand.
+    // Added after the register rule so "v0.t" is coloured as a whole, not as "v0".
+    const QString vectorOptionPattern {
+        "(?<![\\w.])(?:"
+        "e(?:8|16|32|64)|"
+        "m[1248]|mf[248]|"
+        "t[au]|m[au]|"
+        "v0\\.t"
+        ")(?![\\w.])"
+    };
+    m_highlightRules.push_back({QRegularExpression(vectorOptionPattern), SyntaxStyle::VectorOption});
 }
 
 void SyntaxHighlighter::highlightBlock(const QString &text)
