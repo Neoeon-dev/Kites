@@ -7,6 +7,7 @@
 #include "assembler/lexer.h"
 
 #include "common/instructions.h"
+#include "common/vector_config.h"
 #include "common/rounding_modes.h"
 #include "processor/registers.h"
 
@@ -146,6 +147,23 @@ Token Lexer::identifier()
     if (isValidRoundingMode(value))
     {
         return {TokenType::RM, value, line_number_, start_column};
+    }
+
+    if(isValidSEW(value))
+    {
+        return {TokenType::SEW, value, line_number_, start_column};
+    }
+    if(isValidLMUL(value))
+    {
+        return {TokenType::LMUL, value, line_number_, start_column};
+    }
+    if(isValidTail(value))
+    {
+        return {TokenType::TAIL, value, line_number_, start_column};
+    }
+    if(isValidMask(value))
+    {
+        return {TokenType::MASK, value, line_number_, start_column};
     }
 
     // An identifier in operand position (right after an opcode or a comma) is a label

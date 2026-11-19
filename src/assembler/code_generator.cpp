@@ -52,9 +52,9 @@ printIntermediateCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCo
             code = block.getOpcode() + " " + block.getRd() + " " + block.getImm() + " <" +
                    block.getLabel() + ">";
         }
-        else if (instruction_set::isValidVTypeInstruction(block.getOpcode()))
+        else if(instruction_set::isValidVSETtypeInstruction(block.getOpcode()))
         {
-            code = block.getOpcode() + " " + block.getRd() + ", " + block.getRs1() + ", " + block.getRs2();
+            code = block.getOpcode() + " " + block.getRd() + " " + block.getRs1() + " " + block.getImm();
         }
         else
         {
@@ -362,33 +362,21 @@ uint32_t generateFDSTypeMachineCode(const ICUnit &block)
     return machineCode;
 }
 
-uint32_t generateVLTypeMachineCode(const ICUnit &block){
-    const auto &encoding = 
-        instruction_set::VL_type_instruction_encoding_map.at(block.getOpcode());
-}
-
-uint32_t generateVTypeMachineCode(const ICUnit &block)
+uint32_t generateVSETtypeMachineCode(const ICUnit &block)
 {
-    const auto &encoding = 
-        instruction_set::V_type_instruction_encoding_map.at(block.getOpcode());
-    const uint32_t vs1 = extractRegisterIndex(block.getRs2());
-    const uint32_t vs2 = extractRegisterIndex(block.getRs1());
-    const uint32_t vd = extractRegisterIndex(block.getRd());
-
-    constexpr uint32_t vm = 1;
-
+    const auto &encoding = instruction_set::VSET_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t rd = extractRegisterIndex(block.getRd());
+    const uint32_t rs1 = extractRegisterIndex(block.getRs1());
+    const uint32_t imm = static_cast<uint32_t>(std::stoi(block.getImm()));
     uint32_t machineCode = 0;
-
-    machineCode |= (encoding.funct6.to_ullong() << 26);
-    machineCode |= (vm << 25);
-    machineCode |= (vs2 << 20);
-    machineCode |= (vs1 << 15);
-    machineCode |= (encoding.funct3.to_ullong() << 12);
-    machineCode |= (vd << 7);
-    machineCode |= (encoding.opcode.to_ullong());
-
+    machineCode |= (imm << 20);
+    machineCode |= (rs1 << 15);
+    machineCode |= (encoding.funct3.to_ulong() << 12);
+    machineCode |= (rd << 7);
+    machineCode |= encoding.opcode.to_ulong();
     return machineCode;
 }
+
 
 std::vector<uint32_t>
 generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode)
@@ -466,9 +454,9 @@ generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode
         {
             code = generateFDSTypeMachineCode(block);
         }
-        else if (instruction_set::isValidVTypeInstruction(block.getOpcode()))
+        else if (instruction_set::isValidVSETtypeInstruction(block.getOpcode()))
         {
-            code = generateVTypeMachineCode(block);
+            code = generateVSETtypeMachineCode(block);
         }
         else
         {

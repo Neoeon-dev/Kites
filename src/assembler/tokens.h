@@ -35,10 +35,10 @@ enum class TokenType
     LPAREN,       ///< Left parenthesis '('
     RPAREN,       ///< Right parenthesis ')'
     STRING,       ///< String literal
-    SEW,
-    LMUL,
-    TAIL,
-    MASK,
+    SEW,          ///< Standard Element Width
+    LMUL,         ///< Lanes Multiplier
+    TAIL,         ///< Tail policy
+    MASK,         ///< Mask policy
     RM,           ///< Rounding mode
 };
 

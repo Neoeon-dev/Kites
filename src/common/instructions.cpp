@@ -375,7 +375,10 @@ static const std::unordered_set<std::string> valid_instructions = {
     "fld", "fsd", "fmadd.d", "fmsub.d", "fnmsub.d", "fnmadd.d", "fadd.d", "fsub.d", "fmul.d",
     "fdiv.d", "fsqrt.d", "fsgnj.d", "fsgnjn.d", "fsgnjx.d", "fmin.d", "fmax.d", "fcvt.s.d",
     "fcvt.d.s", "feq.d", "flt.d", "fle.d", "fclass.d", "fcvt.w.d", "fcvt.wu.d", "fcvt.d.w",
-    "fcvt.d.wu", "fcvt.l.d", "fcvt.lu.d", "fmv.x.d", "fcvt.d.l", "fcvt.d.lu", "fmv.d.x"
+    "fcvt.d.wu", "fcvt.l.d", "fcvt.lu.d", "fmv.x.d", "fcvt.d.l", "fcvt.d.lu", "fmv.d.x",
+
+    //RV64V
+    "vsetvli"
 
 };
 
@@ -731,6 +734,10 @@ std::unordered_map<std::string, FDSTypeInstructionEncoding> F_D_S_type_instructi
     {"fsd", {0b0100111, 0b011}}, // O_FPR_C_I_LP_GPR_RP
 };
 
+std::unordered_map<std::string, VSETtypeInstructionEncoding> VSET_type_instruction_encoding_map = {
+    {"vsetvli", {0b1010111, 0b111}},
+};
+
 std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
     V_type_instruction_encoding_map = {
         {"vadd.vv", {0b1010111, 0b000, 0b000000}},
@@ -979,6 +986,10 @@ std::unordered_map<std::string, std::vector<SyntaxType>> instruction_syntax_map 
                                             // from an x (integer) register into an f
                                             // (floating-point) register without conversion
 
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    {"vsetvli", {SyntaxType::O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK}},
+
 };
 
 bool isValidInstruction(const std::string &instruction)
@@ -1092,6 +1103,11 @@ bool isValidFDITypeInstruction(const std::string &instruction)
 bool isValidFDSTypeInstruction(const std::string &instruction)
 {
     return (FDExtensionSTypeInstructions.find(instruction) != FDExtensionSTypeInstructions.end());
+}
+
+bool isValidVSETtypeInstruction(const std::string &instruction)
+{
+    return (VSET_type_instruction_encoding_map.find(instruction) != VSET_type_instruction_encoding_map.end());
 }
 
 bool isValidVLTypeInstruction(const std::string &instruction)
@@ -1235,6 +1251,7 @@ std::string getExpectedSyntaxes(const std::string &opcode)
         {SyntaxType::O_GPR_C_FPR_C_RM, "<gp-reg>, <fp-reg>, <rm>"},
         {SyntaxType::O_GPR_C_FPR_C_FPR, "<gp-reg>, <fp-reg>, <fp-reg>"},
         {SyntaxType::O_FPR_C_I_LP_GPR_RP, "<fp-reg>, <imm>(<gp-reg>)"},
+        {SyntaxType::O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK, "<gp-reg>, <gp-reg>, <SEW>, <LMUL>, <tail>, <mask>"},
     };
 
     std::string syntaxes;
@@ -1296,6 +1313,8 @@ InstructionType getInstructionType(const std::string &instruction)
         return InstructionType::F_TYPE;
     // if (isValidBaseExtensionInstruction(instruction))
     //     return InstructionType::BASE_EXT;
+    if (isValidVSETtypeInstruction(instruction))
+        return InstructionType::V_TYPE;
 
     return InstructionType::UNKNOWN;
 }
@@ -1826,6 +1845,77 @@ std::string disassemble(uint32_t instruction)
 
         break;
     }
+    
+    case 0b1010111:
+    {
+        // Get the encoding information from the instruction map
+        const auto &encoding =
+            VSET_type_instruction_encoding_map.at("vsetvli");
+
+        // Check whether this is the supported vsetvli format
+        if (funct3 != encoding.funct3.to_ulong() ||
+            ((instruction >> 31) & 0x1) != 0)
+        {
+            break;
+        }
+
+        // Extract the 11-bit vtypei immediate
+        const uint32_t zimm = (instruction >> 20) & 0x7FF;
+
+        // Bits [10:8] are reserved and must be zero
+        if ((zimm & 0x700) != 0)
+        {
+            break;
+        }
+
+        // Extract individual configuration fields
+        const uint8_t vlmul = zimm & 0x7;
+        const uint8_t vsew = (zimm >> 3) & 0x7;
+        const uint8_t vta = (zimm >> 6) & 0x1;
+        const uint8_t vma = (zimm >> 7) & 0x1;
+
+        // Decode SEW
+        std::string sew;
+
+        switch (vsew)
+        {
+            case 0b000: sew = "e8";  break;
+            case 0b001: sew = "e16"; break;
+            case 0b010: sew = "e32"; break;
+            case 0b011: sew = "e64"; break;
+            default: break;
+        }
+
+        // Decode LMUL
+        std::string lmul;
+
+        switch (vlmul)
+        {
+            case 0b000: lmul = "m1";  break;
+            case 0b001: lmul = "m2";  break;
+            case 0b010: lmul = "m4";  break;
+            case 0b011: lmul = "m8";  break;
+            case 0b101: lmul = "mf2"; break;
+            case 0b110: lmul = "mf4"; break;
+            case 0b111: lmul = "mf8"; break;
+            default: break;
+        }
+
+        // Reject unsupported configuration encodings
+        if (sew.empty() || lmul.empty())
+        {
+            break;
+        }
+
+        // Decode tail and mask policies
+        const std::string tail = vta ? "ta" : "tu";
+        const std::string mask = vma ? "ma" : "mu";
+
+        return "vsetvli " + xr(rd) + ", " + xr(rs1) +
+            ", " + sew + ", " + lmul +
+            ", " + tail + ", " + mask;
+    }
+    
 
     } // end switch
 
