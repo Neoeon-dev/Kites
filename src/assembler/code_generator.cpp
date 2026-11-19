@@ -377,6 +377,59 @@ uint32_t generateVSETtypeMachineCode(const ICUnit &block)
     return machineCode;
 }
 
+uint32_t generateVVTypeMachineCode(const ICUnit &block)
+{
+    const auto &encoding = instruction_set::VArithmetic_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t vd = extractRegisterIndex(block.getVd());
+    const uint32_t vs1 = extractRegisterIndex(block.getVs1());
+    const uint32_t vs2 = extractRegisterIndex(block.getVs2());
+    const uint32_t vm = block.getVm();
+    uint32_t machineCode = 0;
+    machineCode |= (encoding.funct6.to_ulong() << 26);
+    machineCode |= (vm << 25);
+    machineCode |= (vs2 << 20);
+    machineCode |= (vs1 << 15);
+    machineCode |= (encoding.funct3.to_ulong() << 12);
+    machineCode |= (vd << 7);
+    machineCode |= encoding.opcode.to_ulong();
+    return machineCode;
+}
+
+uint32_t generateVXTypeMachineCode(const ICUnit &block)
+{
+    const auto &encoding = instruction_set::VArithmetic_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t vd = extractRegisterIndex(block.getVd());
+    const uint32_t vs1 = extractRegisterIndex(block.getVs1());
+    const uint32_t rs2 = extractRegisterIndex(block.getRs2());
+    const uint32_t vm = block.getVm();
+    uint32_t machineCode = 0;
+    machineCode |= (encoding.funct6.to_ulong() << 26);
+    machineCode |= (vm << 25);
+    machineCode |= (rs2 << 20);
+    machineCode |= (vs1 << 15);
+    machineCode |= (encoding.funct3.to_ulong() << 12);
+    machineCode |= (vd << 7);
+    machineCode |= encoding.opcode.to_ulong();
+    return machineCode;
+}
+
+uint32_t generateVITypeMachineCode(const ICUnit &block)
+{
+    const auto &encoding = instruction_set::VArithmetic_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t vd = extractRegisterIndex(block.getVd());
+    const uint32_t vs1 = extractRegisterIndex(block.getVs1());
+    const uint32_t imm = static_cast<uint32_t>(std::stoi(block.getImm()));
+    const uint32_t vm = block.getVm();
+    uint32_t machineCode = 0;
+    machineCode |= (encoding.funct6.to_ulong() << 26);
+    machineCode |= (vm << 25);
+    machineCode |= (imm << 20);
+    machineCode |= (vs1 << 15);
+    machineCode |= (encoding.funct3.to_ulong() << 12);
+    machineCode |= (vd << 7);
+    machineCode |= encoding.opcode.to_ulong();
+    return machineCode;
+}
 
 std::vector<uint32_t>
 generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode)
@@ -457,6 +510,18 @@ generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode
         else if (instruction_set::isValidVSETtypeInstruction(block.getOpcode()))
         {
             code = generateVSETtypeMachineCode(block);
+        }
+        else if (instruction_set::isValidVVTypeInstruction(block.getOpcode()))
+        {
+            code = generateVVTypeMachineCode(block);
+        }
+        else if (instruction_set::isValidVXTypeInstruction(block.getOpcode()))
+        {
+            code = generateVXTypeMachineCode(block);
+        }
+        else if (instruction_set::isValidVITypeInstruction(block.getOpcode()))
+        {
+            code = generateVITypeMachineCode(block);
         }
         else
         {
