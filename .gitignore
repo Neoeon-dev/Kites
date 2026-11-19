@@ -25,3 +25,4 @@ gtest_filter.
 gtest_filter.py
 CMakeUserPresets.json
 .cmake-deps/
+test/vector_conformance/generated/

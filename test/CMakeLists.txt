@@ -17,6 +17,10 @@ target_link_libraries(kites_test PRIVATE
     Threads::Threads
 )
 
+# Where vector_conformance_test.cpp finds its generated cases.
+target_compile_definitions(kites_test PRIVATE
+    KITES_VECTOR_CONFORMANCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/vector_conformance")
+
 if(DISABLE_GUI)
     target_compile_definitions(kites_test PRIVATE DISABLE_GUI)
 endif()
@@ -52,6 +56,10 @@ if(ENABLE_COVERAGE)
     GTest::gmock_main
     Threads::Threads
     )
+
+    # Where vector_conformance_test.cpp finds its generated cases.
+    target_compile_definitions(kites_test_cov PRIVATE
+        KITES_VECTOR_CONFORMANCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/vector_conformance")
 
     if(DISABLE_GUI)
         target_compile_definitions(kites_test_cov PRIVATE DISABLE_GUI)
