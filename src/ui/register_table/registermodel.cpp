@@ -17,6 +17,8 @@ RegisterModel::RegisterModel(QObject *parent, RegisterFile *regfile) : QAbstract
             &RegisterModel::updateFRegisterValue);
     connect(m_currentRegisterFile, &RegisterFile::updateVRegister, this,
             &RegisterModel::updateVRegisterValue);
+    connect(m_currentRegisterFile, &RegisterFile::vectorConfigChanged, this,
+            &RegisterModel::registerResetSlot);
     connect(m_currentRegisterFile, &RegisterFile::registerResetSignal, this,
             &RegisterModel::registerResetSlot);
 }
@@ -166,25 +168,14 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const
             }
             else if (row < 96)
             {
-                int vIndex = row - 64;
-                VectorRegister vreg = m_currentRegisterFile->ReadVreg(vIndex);
-                QStringList elements;
-                for (size_t i = 0; i < vreg.size(); ++i)
-                {
-                    uint64_t elementValue = vreg[i];
-                    switch (m_displayBase)
-                    {
-                    case Base::Binary:
-                        elements.append(QString("0b%1").arg(QString::number(elementValue, 2)));
-                        break;
-                    case Base::Decimal:
-                        elements.append(QString::number(static_cast<int64_t>(elementValue)));
-                        break;
-                    case Base::Hexadecimal:
-                        elements.append(QString("0x%1").arg(QString::number(elementValue, 16).toUpper()));
-                        break;
-                    }
-                }
+                const int vIndex = static_cast<int>(row) - 64;
+                const size_t sewBits = currentSewBits();
+                const QStringList elements = formatVectorElements(vIndex, sewBits);
+
+                if (role == Qt::ToolTipRole)
+                    return vectorTooltip(vIndex, sewBits, elements);
+
+                // ", " separators let the view word-wrap the value onto several lines.
                 return QString("[%1]").arg(elements.join(", "));
             }
             else
@@ -199,6 +190,82 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const
     return QVariant{};
 }
 
+size_t RegisterModel::currentSewBits() const
+{
+    // Element width comes from vtype.vsew. If vtype.vill is set (no valid
+    // vsetvli yet) or vsew is reserved, fall back to 64-bit elements.
+    const uint64_t vtype = m_currentRegisterFile->ReadCsr(0xC21);
+    const unsigned vsew = (vtype >> 3) & 0b111;
+    if (((vtype >> 63) & 1) || vsew > 3)
+        return 64;
+    return size_t{8} << vsew;
+}
+
+QStringList RegisterModel::formatVectorElements(int vIndex, size_t sewBits) const
+{
+    const size_t elementCount = architecture::VLEN_BITS / sewBits;
+    QStringList elements;
+    elements.reserve(static_cast<qsizetype>(elementCount));
+
+    for (size_t i = 0; i < elementCount; ++i)
+    {
+        const uint64_t value = m_currentRegisterFile->ReadVectorElement(vIndex, i, sewBits);
+        switch (m_displayBase)
+        {
+        case Base::Binary:
+            elements.append(QString("0b%1").arg(QString::number(value, 2)));
+            break;
+        case Base::Decimal:
+        {
+            // Sign-extend from SEW bits so negative elements show as negative.
+            int64_t signedValue = static_cast<int64_t>(value);
+            if (sewBits < 64)
+            {
+                const unsigned shift = 64 - static_cast<unsigned>(sewBits);
+                signedValue = static_cast<int64_t>(value << shift) >> shift;
+            }
+            elements.append(QString::number(signedValue));
+            break;
+        }
+        case Base::Hexadecimal:
+            elements.append(QString("0x%1").arg(QString::number(value, 16).toUpper()));
+            break;
+        }
+    }
+    return elements;
+}
+
+QString RegisterModel::vectorTooltip(int vIndex, size_t sewBits, const QStringList &elements) const
+{
+    // Rich-text grid: "[i] value" cells, with tail elements (i >= vl) greyed out.
+    const uint64_t vl = m_currentRegisterFile->ReadCsr(0xC20);
+    const int columns = sewBits >= 32 ? 4 : 8;
+
+    QString html = QString("<b>v%1</b> &nbsp;·&nbsp; e%2 &nbsp;·&nbsp; vl = %3"
+                           "<table cellspacing='0' cellpadding='2'>")
+                       .arg(vIndex)
+                       .arg(sewBits)
+                       .arg(vl);
+
+    for (int i = 0; i < elements.size(); ++i)
+    {
+        if (i % columns == 0)
+            html += "<tr>";
+
+        const bool tail = static_cast<uint64_t>(i) >= vl;
+        html += QString("<td style='color:gray'>[%1]</td>"
+                        "<td style='padding-right:10px;%2'><code>%3</code></td>")
+                    .arg(i)
+                    .arg(tail ? "color:gray" : "")
+                    .arg(elements[i].toHtmlEscaped());
+
+        if (i % columns == columns - 1)
+            html += "</tr>";
+    }
+    html += "</table>";
+    return html;
+}
+
 void RegisterModel::changeRegisterFile(RegisterFile *regfile)
 {
     beginResetModel();
@@ -209,6 +276,8 @@ void RegisterModel::changeRegisterFile(RegisterFile *regfile)
             &RegisterModel::updateFRegisterValue);
     connect(m_currentRegisterFile, &RegisterFile::updateVRegister, this,
             &RegisterModel::updateVRegisterValue);
+    connect(m_currentRegisterFile, &RegisterFile::vectorConfigChanged, this,
+            &RegisterModel::registerResetSlot);
     // maybe we can directly connect it to
     connect(m_currentRegisterFile, &RegisterFile::registerResetSignal, this,
             &RegisterModel::registerResetSlot);

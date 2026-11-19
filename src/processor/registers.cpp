@@ -124,7 +124,10 @@ void RegisterFile::WriteCsr(size_t reg, uint64_t value)
 {
     if (reg >= NUM_CSR)
         throw std::out_of_range("Invalid CSR index");
+    const bool vtypeChanged = (reg == 0xC21 && csr_[reg] != value);
     csr_[reg] = value;
+    if (vtypeChanged)
+        emit vectorConfigChanged();
 }
 
 void RegisterFile::WriteVreg(size_t reg, VectorRegister value){

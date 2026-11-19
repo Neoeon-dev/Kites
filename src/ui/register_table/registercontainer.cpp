@@ -101,6 +101,15 @@ void RegisterContainer::setupRegisterTable()
         header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
         header->setSectionResizeMode(2, QHeaderView::Stretch);
 
+        if (spec.firstRow == 64)
+        {
+            // Vector values are long (up to 32 elements at e8): wrap them onto
+            // multiple lines and let each row grow to fit, instead of eliding.
+            tableView->setWordWrap(true);
+            tableView->setTextElideMode(Qt::ElideNone);
+            tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+        }
+
         section->setContentWidget(tableView);
         sectionsLayout->addWidget(section);
     }

@@ -148,6 +148,7 @@ class RegisterFile : public QObject
     void updateRegister(size_t regIndex, uint64_t value);
     void updateFRegister(size_t regIndex, uint64_t value);
     void updateVRegister(size_t regIndex, VectorRegister value);
+    void vectorConfigChanged(); ///< Emitted when vtype changes (element width shown in the UI).
     void registerResetSignal();
 };
 

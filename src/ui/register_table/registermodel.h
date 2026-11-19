@@ -2,6 +2,7 @@
 #include "ui/common/display_base_types.h"
 #include "processor/registers.h"
 #include <QAbstractTableModel>
+#include <QStringList>
 #include <memory>
 
 namespace Kites
@@ -35,6 +36,12 @@ class RegisterModel : public QAbstractTableModel
     void registerResetSlot();
     void updateFRegisterValue(size_t regIndex, uint64_t value);
     void updateVRegisterValue(size_t regIndex, VectorRegister value);
+
+  private:
+    [[nodiscard]] size_t currentSewBits() const;
+    [[nodiscard]] QStringList formatVectorElements(int vIndex, size_t sewBits) const;
+    [[nodiscard]] QString vectorTooltip(int vIndex, size_t sewBits,
+                                        const QStringList &elements) const;
 };
 
 } // namespace Kites
