@@ -96,8 +96,8 @@ class RegisterFile : public QObject
     
     /**
      * @brief Reads the value of a Vector register (Vreg).
-     * @param reg The index of the FPR to read.
-     * @return The value of the FPR at the specified index.
+     * @param reg The index of the Vreg to read.
+     * @return The value of the Vreg at the specified index.
      */
 
     [[nodiscard]] VectorRegister ReadVreg(size_t reg) const;
@@ -147,6 +147,7 @@ class RegisterFile : public QObject
   signals:
     void updateRegister(size_t regIndex, uint64_t value);
     void updateFRegister(size_t regIndex, uint64_t value);
+    void updateVRegister(size_t regIndex, VectorRegister value);
     void registerResetSignal();
 };
 

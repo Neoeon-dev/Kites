@@ -1,5 +1,5 @@
 {
-  "tests": 159,
+  "tests": 180,
   "name": "AllTests",
   "testsuites": [
     {
@@ -361,6 +361,57 @@
           "name": "KeepsSourceLineWhenArgumentCountDoesNotMatch",
           "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/pseudo_inst_test.cpp",
           "line": 80
+        }
+      ]
+    },
+    {
+      "name": "VectorRegisterFile",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "initializesRegistersToZero",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 7
+        },
+        {
+          "name": "readsAndWrites8BitElements",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 22
+        },
+        {
+          "name": "readsAndWrites32BitElements",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 43
+        },
+        {
+          "name": "supports64BitElements",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 61
+        },
+        {
+          "name": "rejectsInvalidRegisterIndex",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 75
+        },
+        {
+          "name": "rejectsInvalidElementIndex",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 85
+        },
+        {
+          "name": "rejectsUnsupportedSEW",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 96
+        },
+        {
+          "name": "resetClearsVectorRegisters",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 106
+        },
+        {
+          "name": "ReadsMultipleRegisters",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/regist_test.cpp",
+          "line": 117
         }
       ]
     },
@@ -1189,13 +1240,85 @@
       ]
     },
     {
-      "name": "VectorRegisterLexer",
-      "tests": 1,
+      "name": "VectorArithTest",
+      "tests": 9,
       "testsuite": [
         {
-          "name": "recognizesVectorRegisters",
+          "name": "VaddVvAddsEachElement",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 75
+        },
+        {
+          "name": "VaddWrapsWithinElement",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 92
+        },
+        {
+          "name": "VsraIsArithmeticVsrlIsLogical",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 105
+        },
+        {
+          "name": "TailElementsUntouched",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 119
+        },
+        {
+          "name": "MaskedOffElementsUntouched",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 131
+        },
+        {
+          "name": "UndoRestoresVd",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 145
+        },
+        {
+          "name": "VsetivliChangesVlAndVtype",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 165
+        },
+        {
+          "name": "VsetivliCapsVlAtVlmax",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 184
+        },
+        {
+          "name": "VsetivliThenVaddUsesNewSew",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_arit_test.cpp",
+          "line": 196
+        }
+      ]
+    },
+    {
+      "name": "VectorRegisterLexer",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "recognizesValidVectorRegisters",
           "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_register_lexer_test.cpp",
-          "line": 9
+          "line": 48
+        },
+        {
+          "name": "rejectsOutOfRangeRegister",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_register_lexer_test.cpp",
+          "line": 67
+        }
+      ]
+    },
+    {
+      "name": "VectorRegisterParser",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "parsesVectorAdd",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_register_parser_test.cpp",
+          "line": 10
+        },
+        {
+          "name": "generatesVaddVvMachineCode",
+          "file": "\/home\/navaneethv9\/Navaneeth\/apps\/VectorExtension\/Kites\/test\/vector_register_parser_test.cpp",
+          "line": 36
         }
       ]
     }

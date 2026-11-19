@@ -15,6 +15,8 @@ RegisterModel::RegisterModel(QObject *parent, RegisterFile *regfile) : QAbstract
             &RegisterModel::updateRegisterValue);
     connect(m_currentRegisterFile, &RegisterFile::updateFRegister, this,
             &RegisterModel::updateFRegisterValue);
+    connect(m_currentRegisterFile, &RegisterFile::updateVRegister, this,
+            &RegisterModel::updateVRegisterValue);
     connect(m_currentRegisterFile, &RegisterFile::registerResetSignal, this,
             &RegisterModel::registerResetSlot);
 }
@@ -22,7 +24,7 @@ RegisterModel::RegisterModel(QObject *parent, RegisterFile *regfile) : QAbstract
 int RegisterModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return 64;
+    return 96;
 }
 
 int RegisterModel::columnCount(const QModelIndex &parent) const
@@ -85,9 +87,16 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const
             {
                 return QString("x%1").arg(row);
             }
-            else
+            else if(row < 64)
             {
                 return QString("f%1").arg(row - 32);
+            }
+            else if (row < 96)
+            {
+                return QString("v%1").arg(row - 64);
+            }
+            else{
+                return QString("");
             }
         case 1: // Register Alias
         {
@@ -95,6 +104,8 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const
                 return QString(register_names::kGprAliases[row]);
             else if (row < 64)
                 return QString(register_names::kFprAliases[row - 32]);
+            else if (row < 96)
+                return QString(register_names::kVregAliases[row - 64]);
             else
                 return QString("");
         }
@@ -153,6 +164,29 @@ QVariant RegisterModel::data(const QModelIndex &index, int role) const
                 }
                 }
             }
+            else if (row < 96)
+            {
+                int vIndex = row - 64;
+                VectorRegister vreg = m_currentRegisterFile->ReadVreg(vIndex);
+                QStringList elements;
+                for (size_t i = 0; i < vreg.size(); ++i)
+                {
+                    uint64_t elementValue = vreg[i];
+                    switch (m_displayBase)
+                    {
+                    case Base::Binary:
+                        elements.append(QString("0b%1").arg(QString::number(elementValue, 2)));
+                        break;
+                    case Base::Decimal:
+                        elements.append(QString::number(static_cast<int64_t>(elementValue)));
+                        break;
+                    case Base::Hexadecimal:
+                        elements.append(QString("0x%1").arg(QString::number(elementValue, 16).toUpper()));
+                        break;
+                    }
+                }
+                return QString("[%1]").arg(elements.join(", "));
+            }
             else
             {
                 return QString("");
@@ -173,6 +207,8 @@ void RegisterModel::changeRegisterFile(RegisterFile *regfile)
             &RegisterModel::updateRegisterValue);
     connect(m_currentRegisterFile, &RegisterFile::updateFRegister, this,
             &RegisterModel::updateFRegisterValue);
+    connect(m_currentRegisterFile, &RegisterFile::updateVRegister, this,
+            &RegisterModel::updateVRegisterValue);
     // maybe we can directly connect it to
     connect(m_currentRegisterFile, &RegisterFile::registerResetSignal, this,
             &RegisterModel::registerResetSlot);
@@ -199,6 +235,13 @@ void RegisterModel::updateFRegisterValue(size_t regIndex, uint64_t value)
     //QModelIndex index = this->index(static_cast<int>(regIndex + 32), 2);
     m_highlightedRegisterIndex = regIndex + 32; // Update highlighted register index
     // emit dataChanged(index,index);
+    beginResetModel();
+    endResetModel();
+}
+
+void RegisterModel::updateVRegisterValue(size_t regIndex, VectorRegister value)
+{
+    m_highlightedRegisterIndex = regIndex + 64; // Update highlighted register index
     beginResetModel();
     endResetModel();
 }

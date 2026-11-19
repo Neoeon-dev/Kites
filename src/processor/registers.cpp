@@ -129,6 +129,7 @@ void RegisterFile::WriteCsr(size_t reg, uint64_t value)
 void RegisterFile::WriteVreg(size_t reg, VectorRegister value){
     if(reg >= NUM_VREG)
         throw std::out_of_range("Invalid Vreg index");
+    emit updateVRegister(reg, value);
     vreg_[reg] = value;
 }
 
@@ -161,6 +162,8 @@ void RegisterFile::WriteVectorElement(
     const uint64_t mask = (sewBits == 64)
         ? UINT64_MAX
         : ((uint64_t{1} << sewBits) - 1);
+
+    emit updateVRegister(reg, vreg_[reg]);
 
     // Clear the previous element.
     vreg_[reg][wordIndex] &= ~(mask << bitOffset);

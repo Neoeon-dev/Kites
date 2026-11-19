@@ -34,6 +34,7 @@ class RegisterModel : public QAbstractTableModel
     void updateRegisterValue(size_t regIndex, uint64_t value);
     void registerResetSlot();
     void updateFRegisterValue(size_t regIndex, uint64_t value);
+    void updateVRegisterValue(size_t regIndex, VectorRegister value);
 };
 
 } // namespace Kites
