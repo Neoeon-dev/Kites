@@ -153,7 +153,7 @@ bool Parser::parse_O_VREG_C_VREG_C_GPR()
         reg = reg_alias_to_name.at(peekToken(3).value);
         block.setRs1(reg);
         reg = reg_alias_to_name.at(peekToken(5).value);
-        block.setVs1(reg);
+        block.setVs2(reg);
 
         skipCurrentLine();
         intermediate_code_.emplace_back(block, true);
@@ -180,7 +180,7 @@ bool Parser::parse_O_VREG_C_VREG_C_GPR()
             reg = reg_alias_to_name.at(peekToken(3).value);
             block.setRs1(reg);
             reg = reg_alias_to_name.at(peekToken(5).value);
-            block.setVs1(reg);
+            block.setVs2(reg);
             block.setVm(0); // Assuming the 4th vector register is used for masking, set vm to 0
 
             skipCurrentLine();

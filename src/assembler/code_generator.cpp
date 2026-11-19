@@ -56,6 +56,18 @@ printIntermediateCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCo
         {
             code = block.getOpcode() + " " + block.getRd() + " " + block.getRs1() + " " + block.getImm();
         }
+        else if(instruction_set::isValidVVTypeInstruction(block.getOpcode()))
+        {
+            code = block.getOpcode() + " " + block.getVd() + " " + block.getVs1() + " " + block.getVs2();
+        }
+        else if(instruction_set::isValidVXTypeInstruction(block.getOpcode()))
+        {
+            code = block.getOpcode() + " " + block.getVd() + " " + block.getVs2() + " " + block.getRs1();
+        }
+        else if(instruction_set::isValidVITypeInstruction(block.getOpcode()))
+        {
+            code = block.getOpcode() + " " + block.getVd() + " " + block.getVs2() + " " + block.getImm();
+        }
         else
         {
             code = block.getOpcode() + " " + block.getImm();
@@ -399,14 +411,14 @@ uint32_t generateVXTypeMachineCode(const ICUnit &block)
 {
     const auto &encoding = instruction_set::VArithmetic_type_instruction_encoding_map.at(block.getOpcode());
     const uint32_t vd = extractRegisterIndex(block.getVd());
-    const uint32_t vs1 = extractRegisterIndex(block.getVs1());
-    const uint32_t rs2 = extractRegisterIndex(block.getRs1());
+    const uint32_t vs2 = extractRegisterIndex(block.getVs2());
+    const uint32_t rs1 = extractRegisterIndex(block.getRs1());
     const uint32_t vm = block.getVm();
     uint32_t machineCode = 0;
     machineCode |= (encoding.funct6.to_ulong() << 26);
     machineCode |= (vm << 25);
-    machineCode |= (rs2 << 20);
-    machineCode |= (vs1 << 15);
+    machineCode |= (vs2 << 20);
+    machineCode |= (rs1 << 15);
     machineCode |= (encoding.funct3.to_ulong() << 12);
     machineCode |= (vd << 7);
     machineCode |= encoding.opcode.to_ulong();
