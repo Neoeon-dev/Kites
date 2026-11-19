@@ -58,7 +58,7 @@ struct ICUnit
 
         uint8_t address_offsets = 0;
 
-        uint8_t vm = 0;
+        uint8_t vm = 1;
 
         uint8_t mop = 0;
 
@@ -67,7 +67,7 @@ struct ICUnit
         uint8_t nf = 0;
 
         uint8_t sumop = 0;
-    };
+    } vec_block;
 
     ICUnit() : line_number{}, opcode{}, rd{}, rs1{}, rs2{}, rs3{}, csr{}, imm{}, label{}, rm{}
     {
@@ -196,6 +196,88 @@ struct ICUnit
         rm = value;
     }
 
+    void setVd(const std::string &value)
+    {
+        vec_block.valid = true;
+        strncpy(vec_block.vd.data(), value.c_str(), 5);
+        vec_block.vd[5] = '\0';
+    }
+
+    void setVs1(const std::string &value)
+    {
+        vec_block.valid = true;
+        strncpy(vec_block.vs1.data(), value.c_str(), 5);
+        vec_block.vs1[5] = '\0';
+    }
+
+    void setVs2(const std::string &value)
+    {
+        vec_block.valid = true;
+        strncpy(vec_block.vs2.data(), value.c_str(), 5);
+        vec_block.vs2[5] = '\0';
+    }
+
+    void setWidth(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.width = value;
+    }
+    
+    void setLumop(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.lumop = value;
+    }
+
+    void setStride(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.stride = value;
+    }
+
+    void setAddress(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.address = value;
+    }
+
+    void setAddressOffsets(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.address_offsets = value;
+    }
+
+    void setVm(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.vm = value;
+    }
+
+    void setMop(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.mop = value;
+    }
+
+    void setMew(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.mew = value;
+    }
+
+    void setNf(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.nf = value;
+    }
+
+    void setSumop(uint8_t value)
+    {
+        vec_block.valid = true;
+        vec_block.sumop = value;
+    }
+
+
     [[nodiscard]] unsigned int getLineNumber() const
     {
         return line_number;
@@ -249,6 +331,74 @@ struct ICUnit
     [[nodiscard]] uint8_t getRm() const
     {
         return rm;
+    }
+
+    // Getters for vector registers
+
+    [[nodiscard]] std::string getVd() const
+    {
+        return vec_block.vd.data();
+    }
+
+    [[nodiscard]] std::string getVs1() const
+    {
+        return vec_block.vs1.data();
+    }
+
+    [[nodiscard]] std::string getVs2() const
+    {
+        return vec_block.vs2.data();
+    }
+
+    // Getters for vector configuration and memory fields
+    [[nodiscard]] uint8_t getWidth() const
+    {
+        return vec_block.width;
+    }
+
+    [[nodiscard]] uint8_t getLumop() const
+    {
+        return vec_block.lumop;
+    }
+
+    [[nodiscard]] uint8_t getStride() const
+    {
+        return vec_block.stride;
+    }
+
+    [[nodiscard]] uint8_t getAddress() const
+    {
+        return vec_block.address;
+    }
+
+    [[nodiscard]] uint8_t getAddressOffsets() const
+    {
+        return vec_block.address_offsets;
+    }
+
+    [[nodiscard]] uint8_t getVm() const
+    {
+        return vec_block.vm;
+    }
+
+    [[nodiscard]] uint8_t getMop() const
+    {
+        return vec_block.mop;
+    }
+
+    [[nodiscard]] uint8_t getMew() const
+    {
+        return vec_block.mew;
+    }
+
+    [[nodiscard]] uint8_t getNf() const
+    {
+        return vec_block.nf;
+    }
+
+    [[nodiscard]] uint8_t getSumop() const
+    {
+        return vec_block.sumop;
     }
 };
 

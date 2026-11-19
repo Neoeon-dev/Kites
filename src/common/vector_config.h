@@ -22,9 +22,9 @@ enum class LMUL
     M2 = 0b001,
     M4 = 0b010,
     M8 = 0b011,
-    MF8 = 0b111,
+    MF2 = 0b111,
     MF4 = 0b110,
-    MF2 = 0b101,
+    MF8 = 0b101,
 };
 
 enum class Tail

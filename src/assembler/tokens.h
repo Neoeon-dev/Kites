@@ -39,6 +39,7 @@ enum class TokenType
     LMUL,         ///< Lanes Multiplier
     TAIL,         ///< Tail policy
     MASK,         ///< Mask policy
+    VM,           ///< Vector Mask
     RM,           ///< Rounding mode
 };
 

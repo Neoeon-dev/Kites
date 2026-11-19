@@ -157,7 +157,9 @@ class Parser
     bool parse_O_FPR_C_I_LP_GPR_RP();
 
     bool parse_O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK();
-    bool parse_O_VEC_C_VEC_C_VEC();
+    bool parse_O_VREG_C_VREG_C_VREG();
+    bool parse_O_VREG_C_VREG_C_GPR();
+    bool parse_O_VREG_C_VREG_C_IMM();
     
     /**
      * @brief Parses a data directive.

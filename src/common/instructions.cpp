@@ -378,7 +378,9 @@ static const std::unordered_set<std::string> valid_instructions = {
     "fcvt.d.wu", "fcvt.l.d", "fcvt.lu.d", "fmv.x.d", "fcvt.d.l", "fcvt.d.lu", "fmv.d.x",
 
     //RV64V
-    "vsetvli"
+    "vsetvli","vadd.vv", "vadd.vx","vadd.vi","vsub.vv","vsub.vx","vrsub.vx","vrsub.vi",
+    "vand.vv", "vand.vx","vand.vi","vor.vv", "vor.vx","vor.vi","vminu.vv", "vminu.vx","vmin.vv", "vmin.vx",
+    "vmaxu.vv", "vmax.vx","vmax.vv","vmax.vx",
 
 };
 
@@ -503,9 +505,18 @@ static const std::unordered_set<std::string> FDExtensionITypeInstructions = {"fl
 
 static const std::unordered_set<std::string> FDExtensionSTypeInstructions = {"fsw", "fsd"};
 
-static const std::unordered_set<std::string> VLTypeInstructions = {};
+static const std::unordered_set<std::string> VVTypeInstructions = {
+    "vadd.vv", "vsub.vv", "vand.vv", "vor.vv","vminu.vv", "vmin.vv", "vmaxu.vv", "vmax.vv"
+};
 
-static const std::unordered_set<std::string> VSTypeInstructions = {};
+
+static const std::unordered_set<std::string> VXTypeInstructions = {
+    "vadd.vx", "vsub.vx", "vrsub.vx", "vand.vx", "vor.vx","vminu.vx", "vmin.vx", "vmaxu.vx", "vmax.vx"
+};
+
+static const std::unordered_set<std::string> VITypeInstructions = {
+    "vadd.vi", "vrsub.vi", "vand.vi", "vor.vi"
+};
 
 static const std::unordered_set<std::string> FExtensionInstructions = {
     "flw",       "fsw",      "fmadd.s",  "fmsub.d",   "fnmsub.s", "fnmadd.s",
@@ -735,16 +746,42 @@ std::unordered_map<std::string, FDSTypeInstructionEncoding> F_D_S_type_instructi
 };
 
 std::unordered_map<std::string, VSETtypeInstructionEncoding> VSET_type_instruction_encoding_map = {
-    {"vsetvli", {0b1010111, 0b111}},
+    {"vsetvli", {0b1010111, 0b111}}, 
 };
 
 std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
-    V_type_instruction_encoding_map = {
-        {"vadd.vv", {0b1010111, 0b000, 0b000000}},
+    VArithmetic_type_instruction_encoding_map = {
+    {"vadd.vv",  {0b1010111, 0b000, 0b000000}},
+    {"vadd.vx",  {0b1010111, 0b100, 0b000000}},
+    {"vadd.vi",  {0b1010111, 0b011, 0b000000}},
+
+    {"vsub.vv",  {0b1010111, 0b000, 0b000010}},
+    {"vsub.vx",  {0b1010111, 0b100, 0b000010}},
+
+    {"vrsub.vx", {0b1010111, 0b100, 0b000011}},
+    {"vrsub.vi", {0b1010111, 0b011, 0b000011}},
+
+    {"vminu.vv", {0b1010111, 0b000, 0b000100}},
+    {"vminu.vx", {0b1010111, 0b100, 0b000100}},
+
+    {"vmin.vv",  {0b1010111, 0b000, 0b000101}},
+    {"vmin.vx",  {0b1010111, 0b100, 0b000101}},
+
+    {"vmaxu.vv", {0b1010111, 0b000, 0b000110}},
+    {"vmaxu.vx", {0b1010111, 0b100, 0b000110}},
+
+    {"vmax.vv",  {0b1010111, 0b000, 0b000111}},
+    {"vmax.vx",  {0b1010111, 0b100, 0b000111}},
+
+    {"vand.vv",  {0b1010111, 0b000, 0b001001}},
+    {"vand.vx",  {0b1010111, 0b100, 0b001001}},
+    {"vand.vi",  {0b1010111, 0b011, 0b001001}},
+
+    {"vor.vv",   {0b1010111, 0b000, 0b001010}},
+    {"vor.vx",   {0b1010111, 0b100, 0b001010}},
+    {"vor.vi",   {0b1010111, 0b011, 0b001010}},
 };
 
-std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
-    VL_type_instruction_encoding_map = {};
 
 /*
     O_GPR_C_GPR_C_GPR,       ///< Opcode general-register , general-register , register
@@ -990,6 +1027,33 @@ std::unordered_map<std::string, std::vector<SyntaxType>> instruction_syntax_map 
 
     {"vsetvli", {SyntaxType::O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK}},
 
+    {"vadd.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vadd.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+    {"vadd.vi", {SyntaxType::O_VREG_C_VREG_C_IMM}},
+
+    {"vsub.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vsub.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+
+    {"vrsub.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+    {"vrsub.vi", {SyntaxType::O_VREG_C_VREG_C_IMM}},
+
+    {"vminu.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vminu.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+    {"vmin.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vmin.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+
+    {"vmaxu.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vmaxu.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+    {"vmax.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vmax.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+
+    {"vand.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vand.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+    {"vand.vi", {SyntaxType::O_VREG_C_VREG_C_IMM}},
+    {"vor.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
+    {"vor.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
+    {"vor.vi", {SyntaxType::O_VREG_C_VREG_C_IMM}},
+
 };
 
 bool isValidInstruction(const std::string &instruction)
@@ -1109,20 +1173,17 @@ bool isValidVSETtypeInstruction(const std::string &instruction)
 {
     return (VSET_type_instruction_encoding_map.find(instruction) != VSET_type_instruction_encoding_map.end());
 }
-
-bool isValidVLTypeInstruction(const std::string &instruction)
+bool isValidVVTypeInstruction(const std::string &instruction)
 {
-    return (VLTypeInstructions.find(instruction) != VLTypeInstructions.end());
+    return (VVTypeInstructions.find(instruction) != VVTypeInstructions.end());
 }
-
-bool isValidVSTypeInstruction(const std::string &instruction)
+bool isValidVXTypeInstruction(const std::string &instruction)
 {
-    return (VSTypeInstructions.find(instruction) != VSTypeInstructions.end());
+    return (VXTypeInstructions.find(instruction) != VXTypeInstructions.end());
 }
-
-bool isValidVTypeInstruction(const std::string &instruction)
+bool isValidVITypeInstruction(const std::string &instruction)
 {
-    return (isValidVLTypeInstruction(instruction) || isValidVSTypeInstruction(instruction));
+    return (VITypeInstructions.find(instruction) != VITypeInstructions.end());
 }
 
 
@@ -1252,6 +1313,9 @@ std::string getExpectedSyntaxes(const std::string &opcode)
         {SyntaxType::O_GPR_C_FPR_C_FPR, "<gp-reg>, <fp-reg>, <fp-reg>"},
         {SyntaxType::O_FPR_C_I_LP_GPR_RP, "<fp-reg>, <imm>(<gp-reg>)"},
         {SyntaxType::O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK, "<gp-reg>, <gp-reg>, <SEW>, <LMUL>, <tail>, <mask>"},
+        {SyntaxType::O_VREG_C_VREG_C_VREG, "<vector-reg>, <vector-reg>, <vector-reg>"},
+        {SyntaxType::O_VREG_C_VREG_C_GPR, "<vector-reg>, <vector-reg>, <gp-reg>"},
+        {SyntaxType::O_VREG_C_VREG_C_IMM, "<vector-reg>, <vector-reg>, <imm>"}
     };
 
     std::string syntaxes;
@@ -1314,6 +1378,12 @@ InstructionType getInstructionType(const std::string &instruction)
     // if (isValidBaseExtensionInstruction(instruction))
     //     return InstructionType::BASE_EXT;
     if (isValidVSETtypeInstruction(instruction))
+        return InstructionType::V_TYPE;
+    if (isValidVVTypeInstruction(instruction))
+        return InstructionType::V_TYPE;
+    if (isValidVXTypeInstruction(instruction))
+        return InstructionType::V_TYPE;
+    if (isValidVITypeInstruction(instruction))
         return InstructionType::V_TYPE;
 
     return InstructionType::UNKNOWN;
@@ -1895,9 +1965,9 @@ std::string disassemble(uint32_t instruction)
             case 0b001: lmul = "m2";  break;
             case 0b010: lmul = "m4";  break;
             case 0b011: lmul = "m8";  break;
-            case 0b101: lmul = "mf2"; break;
+            case 0b111: lmul = "mf2"; break;
             case 0b110: lmul = "mf4"; break;
-            case 0b111: lmul = "mf8"; break;
+            case 0b101: lmul = "mf8"; break;
             default: break;
         }
 

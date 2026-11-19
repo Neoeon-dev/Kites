@@ -472,7 +472,11 @@ enum class SyntaxType
     O_FPR_C_I_LP_GPR_RP, ///< Opcode floating-point-register , immediate , lparen ( general-register
                          ///< ) rparen
 
-    O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK ///< Opcode general-register , general-register , <SEW>, <LMUL>, <tail>, <mask>
+    O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK, ///< Opcode general-register , general-register , <SEW>, <LMUL>, <tail>, <mask>
+
+    O_VREG_C_VREG_C_VREG, ///< Opcode vector-register , vector-register , vector-register
+    O_VREG_C_VREG_C_GPR, ///< Opcode vector-register , vector-register , general-register
+    O_VREG_C_VREG_C_IMM, ///< Opcode vector-register , vector-register , immediate
 };
 
 extern std::unordered_map<std::string, RTypeInstructionEncoding> R_type_instruction_encoding_map;
@@ -505,7 +509,7 @@ extern std::unordered_map<std::string, FDSTypeInstructionEncoding>
 extern std::unordered_map<std::string, VSETtypeInstructionEncoding>
     VSET_type_instruction_encoding_map;
 extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
-    V_type_instruction_encoding_map;
+    VArithmetic_type_instruction_encoding_map;
 extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
     VL_type_instruction_encoding_map;
 
@@ -545,6 +549,9 @@ bool isValidFDITypeInstruction(const std::string &instruction);
 bool isValidFDSTypeInstruction(const std::string &instruction);
 
 bool isValidVSETtypeInstruction(const std::string &instruction);
+bool isValidVVTypeInstruction(const std::string &instruction);
+bool isValidVXTypeInstruction(const std::string &instruction);
+bool isValidVITypeInstruction(const std::string &instruction);
 
 bool isFInstruction(const uint32_t &instruction);
 bool isDInstruction(const uint32_t &instruction);
