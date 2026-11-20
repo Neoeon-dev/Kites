@@ -291,4 +291,105 @@ bool Parser::parse_O_VREG_C_VREG_C_IMM()
     return false;
 } 
 
+bool Parser::parse_O_VREG_C_LP_GPR_RP()
+{
+    if (peekToken(1).line_number == currentToken().line_number &&
+        peekToken(1).type == TokenType::VEC_REGISTER &&
+        peekToken(2).line_number == currentToken().line_number &&
+        peekToken(2).type == TokenType::COMMA &&
+        peekToken(3).line_number == currentToken().line_number &&
+        peekToken(3).type == TokenType::LPAREN &&
+        peekToken(4).line_number == currentToken().line_number &&
+        peekToken(4).type == TokenType::GP_REGISTER &&
+        peekToken(5).line_number == currentToken().line_number &&
+        peekToken(5).type == TokenType::RPAREN)
+    {
+        if((peekToken(6).type == TokenType::EOF_ ||  
+         peekToken(6).line_number != currentToken().line_number))
+        {
+            ICUnit block;
+            block.setOpcode(currentToken().value);
+            block.setLineNumber(currentToken().line_number);
+            block.setInstructionIndex(instruction_index_);
+
+            std::string reg;
+
+            if(instruction_set::isValidVLTypeInstruction(block.getOpcode()))
+            {
+                reg = reg_alias_to_name.at(peekToken(1).value);
+                block.setVd(reg);
+                reg = reg_alias_to_name.at(peekToken(4).value);
+                block.setRs1(reg);
+            }
+            else
+            {
+                reg = reg_alias_to_name.at(peekToken(1).value);
+                block.setVs3(reg);
+                reg = reg_alias_to_name.at(peekToken(4).value);
+                block.setRs1(reg);
+            }
+
+            skipCurrentLine();
+            intermediate_code_.emplace_back(block, true);
+            instruction_number_line_number_mapping_[instruction_index_] = block.getLineNumber();
+            instruction_index_++;
+            
+            return true;
+        }
+
+        else if(peekToken(6).line_number == currentToken().line_number &&
+                peekToken(6).type == TokenType::COMMA &&
+                peekToken(7).line_number == currentToken().line_number &&
+                peekToken(7).type == TokenType:: VM &&
+                (peekToken(8).type == TokenType::EOF_ ||  
+                 peekToken(8).line_number != currentToken().line_number))
+        {
+            ICUnit block;
+            block.setOpcode(currentToken().value);
+            block.setLineNumber(currentToken().line_number);
+            block.setInstructionIndex(instruction_index_);
+
+            std::string reg;
+
+            if(instruction_set::isValidVLTypeInstruction(block.getOpcode()))
+            {
+                reg = reg_alias_to_name.at(peekToken(1).value);
+
+                // A masked load may not overwrite the mask register v0
+                if (reg == "v0")
+                {
+                    recordError(ParseError(peekToken(1).line_number, "Masked vector load cannot write v0"));
+                    errors_.all_errors.emplace_back(errors::InvalidRegisterError(
+                        "Invalid destination register", "vd cannot be v0 when the load is masked with v0.t", filename_,
+                        peekToken(1).line_number, peekToken(1).column_number,
+                        GetLineFromFile(filename_, peekToken(1).line_number)));
+                    skipCurrentLine();
+                    return true;
+                }
+
+                block.setVd(reg);
+                reg = reg_alias_to_name.at(peekToken(4).value);
+                block.setRs1(reg);
+            }
+            else
+            {
+                reg = reg_alias_to_name.at(peekToken(1).value);
+                block.setVs3(reg);
+                reg = reg_alias_to_name.at(peekToken(4).value);
+                block.setRs1(reg);
+            }
+
+            block.setVm(0); // v0.t is present, so the instruction is masked: vm = 0
+
+            skipCurrentLine();
+            intermediate_code_.emplace_back(block, true);
+            instruction_number_line_number_mapping_[instruction_index_] = block.getLineNumber();
+            instruction_index_++;
+            
+            return true;
+        }
+    }
+    return false;
+}
+
 }//namespace Kites

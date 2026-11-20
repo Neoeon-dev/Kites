@@ -39,6 +39,7 @@ enum class Mask
     MA = 0b1,   // mask agnostic
 };
 
+
 inline const std::unordered_map<std::string, SEW> stringToSEW = {
     {"e8", SEW::E8}, {"e16", SEW::E16}, {"e32", SEW::E32}, {"e64", SEW::E64}};
 
@@ -65,7 +66,6 @@ inline bool isValidTail(const std::string &value){
 inline bool isValidMask(const std::string &value){
     return stringToMask.find(value) != stringToMask.end();
 }
-
 
 inline uint16_t encodeVtypeImmediate(
     const std::string &sew,

@@ -435,6 +435,18 @@ struct VectorArithmeticInstructionEncoding{
     }
 };
 
+struct VectorMemoryInstructionEncoding{
+    std::bitset<7> opcode;
+    std::bitset<3> width; ///bits 14-12 of the instruction encoding, used to specify the width of the memory operation(func3 position)
+
+    VectorMemoryInstructionEncoding(
+        unsigned int opcode,
+        unsigned int width)
+        : opcode(opcode), width(width)
+    {
+    }
+};
+
 /**
  * @brief Enum that represents different syntax types for instructions.
  */
@@ -480,6 +492,7 @@ enum class SyntaxType
     O_VREG_C_VREG_C_VREG, ///< Opcode vector-register , vector-register , vector-register
     O_VREG_C_VREG_C_GPR, ///< Opcode vector-register , vector-register , general-register
     O_VREG_C_VREG_C_IMM, ///< Opcode vector-register , vector-register , immediate
+    O_VREG_C_LP_GPR_RP    //< Opcode vector-register , lparen , general-register , rparen
 };
 
 extern std::unordered_map<std::string, RTypeInstructionEncoding> R_type_instruction_encoding_map;
@@ -513,8 +526,10 @@ extern std::unordered_map<std::string, VSETtypeInstructionEncoding>
     VSET_type_instruction_encoding_map;
 extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
     VArithmetic_type_instruction_encoding_map;
-extern std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
+extern std::unordered_map<std::string, VectorMemoryInstructionEncoding>
     VL_type_instruction_encoding_map;
+extern std::unordered_map<std::string, VectorMemoryInstructionEncoding>
+    VS_type_instruction_encoding_map;
 
 /**
  * @brief A map that associates instruction names with their expected syntax.
@@ -555,6 +570,8 @@ bool isValidVSETtypeInstruction(const std::string &instruction);
 bool isValidVVTypeInstruction(const std::string &instruction);
 bool isValidVXTypeInstruction(const std::string &instruction);
 bool isValidVITypeInstruction(const std::string &instruction);
+bool isValidVLTypeInstruction(const std::string &instruction);
+bool isValidVSTypeInstruction(const std::string &instruction);
 
 bool isFInstruction(const uint32_t &instruction);
 bool isDInstruction(const uint32_t &instruction);

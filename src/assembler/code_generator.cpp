@@ -443,6 +443,54 @@ uint32_t generateVITypeMachineCode(const ICUnit &block)
     return machineCode;
 }
 
+uint32_t generateVLTypeMachineCode(const ICUnit &block)
+{
+    const auto &encoding = instruction_set::VL_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t vd = extractRegisterIndex(block.getVd());
+    const uint32_t rs1 = extractRegisterIndex(block.getRs1());
+    const uint32_t vm = block.getVm();
+    const uint32_t mop = block.getMop(); // Assuming mop is a 3-bit value
+    const uint32_t lumop = block.getLumop(); // Assuming lumop is a 3-bit value
+    const uint32_t mew = block.getMew(); // Assuming mew is a 3-bit value
+    const uint32_t nf = block.getNf(); // Assuming nf is a 3-bit value
+
+    uint32_t machineCode = 0;
+    machineCode |= (nf << 29);
+    machineCode |= (mew << 28);
+    machineCode |= (mop << 26);
+    machineCode |= (vm << 25);
+    machineCode |= (lumop << 20);
+    machineCode |= (rs1 << 15);
+    machineCode |= (encoding.width.to_ulong() << 12);
+    machineCode |= (vd << 7);
+    machineCode |= encoding.opcode.to_ulong();
+    return machineCode;
+}
+
+uint32_t generateVSTypeMachineCode(const ICUnit &block)
+{
+    const auto &encoding = instruction_set::VS_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t vs3 = extractRegisterIndex(block.getVs3());
+    const uint32_t rs1 = extractRegisterIndex(block.getRs1());
+    const uint32_t vm = block.getVm();
+    const uint32_t mop = block.getMop(); // Assuming mop is a 3-bit value
+    const uint32_t sumop = block.getSumop(); // Assuming sumop is a 3-bit value
+    const uint32_t mew = block.getMew(); // Assuming mew is a 3-bit value
+    const uint32_t nf = block.getNf(); // Assuming nf is a 3-bit value
+
+    uint32_t machineCode = 0;
+    machineCode |= (nf << 29);
+    machineCode |= (mew << 28);
+    machineCode |= (mop << 26);
+    machineCode |= (vm << 25);
+    machineCode |= (sumop << 20);
+    machineCode |= (rs1 << 15);
+    machineCode |= (encoding.width.to_ulong() << 12);
+    machineCode |= (vs3 << 7);
+    machineCode |= encoding.opcode.to_ulong();
+    return machineCode;
+}
+
 std::vector<uint32_t>
 generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode)
 {
@@ -534,6 +582,14 @@ generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode
         else if (instruction_set::isValidVITypeInstruction(block.getOpcode()))
         {
             code = generateVITypeMachineCode(block);
+        }
+        else if (instruction_set::isValidVLTypeInstruction(block.getOpcode()))
+        {
+            code = generateVLTypeMachineCode(block);
+        }
+        else if (instruction_set::isValidVSTypeInstruction(block.getOpcode()))
+        {
+            code = generateVSTypeMachineCode(block);
         }
         else
         {

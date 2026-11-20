@@ -47,7 +47,7 @@ struct ICUnit
         std::array<char, 6> vd ;   ///< Destination vector register name (up to 20 characters, null-terminated).
         std::array<char, 6> vs1 ;  ///< Source vector register 1 name (up to 20 characters, null-terminated).
         std::array<char, 6> vs2 ;  ///< Source vector register 2 name (up to 20 characters, null-terminated).
-
+        std::array<char, 6> vs3 ;  ///< Source vector register name (up to 20 characters, null-terminated).
         uint8_t width = 0;
 
         uint8_t lumop = 0;
@@ -80,6 +80,7 @@ struct ICUnit
         vec_block.vd.fill('\0');
         vec_block.vs1.fill('\0');
         vec_block.vs2.fill('\0');
+        vec_block.vs3.fill('\0');
     }
 
     friend std::ostream &operator<<(std::ostream &os, const ICUnit &unit)
@@ -220,6 +221,13 @@ struct ICUnit
         vec_block.vs2[5] = '\0';
     }
 
+    void setVs3(const std::string &value)
+    {
+        vec_block.valid = true;
+        strncpy(vec_block.vs3.data(), value.c_str(), 5);
+        vec_block.vs3[5] = '\0';
+    }
+
     void setWidth(uint8_t value)
     {
         vec_block.valid = true;
@@ -351,6 +359,11 @@ struct ICUnit
     [[nodiscard]] std::string getVs2() const
     {
         return vec_block.vs2.data();
+    }
+    
+    [[nodiscard]] std::string getVs3() const
+    {
+        return vec_block.vs3.data();
     }
 
     // Getters for vector configuration and memory fields

@@ -378,7 +378,7 @@ static const std::unordered_set<std::string> valid_instructions = {
     "fcvt.d.wu", "fcvt.l.d", "fcvt.lu.d", "fmv.x.d", "fcvt.d.l", "fcvt.d.lu", "fmv.d.x",
 
     //RV64V
-    "vsetvli","vadd.vv", "vadd.vx","vadd.vi","vsub.vv","vsub.vx","vrsub.vx","vrsub.vi",
+    "vsetvli","vle8.v","vle16.v","vle32.v","vle64.v","vse8.v","vse16.v","vse32.v","vse64.v","vadd.vv", "vadd.vx","vadd.vi","vsub.vv","vsub.vx","vrsub.vx","vrsub.vi",
     "vand.vv", "vand.vx","vand.vi","vor.vv", "vor.vx","vor.vi","vminu.vv", "vminu.vx","vmin.vv", "vmin.vx",
     "vmaxu.vv", "vmaxu.vx","vmax.vv","vmax.vx",
 
@@ -505,6 +505,9 @@ static const std::unordered_set<std::string> FDExtensionITypeInstructions = {"fl
 
 static const std::unordered_set<std::string> FDExtensionSTypeInstructions = {"fsw", "fsd"};
 
+static const std::unordered_set<std::string> VSETVLITypeInstructions = {
+    "vsetvli"
+};
 static const std::unordered_set<std::string> VVTypeInstructions = {
     "vadd.vv", "vsub.vv", "vand.vv", "vor.vv","vminu.vv", "vmin.vv", "vmaxu.vv", "vmax.vv"
 };
@@ -516,6 +519,13 @@ static const std::unordered_set<std::string> VXTypeInstructions = {
 
 static const std::unordered_set<std::string> VITypeInstructions = {
     "vadd.vi", "vrsub.vi", "vand.vi", "vor.vi"
+};
+
+static const std::unordered_set<std::string> VLTyepeInstructions = {
+    "vle8.v", "vle16.v", "vle32.v", "vle64.v"
+};
+static const std::unordered_set<std::string> VSTypeInstructions = {
+    "vse8.v", "vse16.v", "vse32.v", "vse64.v"
 };
 
 static const std::unordered_set<std::string> FExtensionInstructions = {
@@ -780,6 +790,20 @@ std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
     {"vor.vv",   {0b1010111, 0b000, 0b001010}},
     {"vor.vx",   {0b1010111, 0b100, 0b001010}},
     {"vor.vi",   {0b1010111, 0b011, 0b001010}},
+};
+
+std::unordered_map<std::string, VectorMemoryInstructionEncoding> VL_type_instruction_encoding_map = {
+    {"vle8.v", {0b0000111, 0b000}},
+    {"vle16.v", {0b0000111, 0b101}},
+    {"vle32.v", {0b0000111, 0b110}},
+    {"vle64.v", {0b0000111, 0b111}},
+};
+
+std::unordered_map<std::string, VectorMemoryInstructionEncoding> VS_type_instruction_encoding_map = {
+    {"vse8.v", {0b0100111, 0b000}},
+    {"vse16.v", {0b0100111, 0b101}},
+    {"vse32.v", {0b0100111, 0b110}},
+    {"vse64.v", {0b0100111, 0b111}},
 };
 
 
@@ -1054,6 +1078,16 @@ std::unordered_map<std::string, std::vector<SyntaxType>> instruction_syntax_map 
     {"vor.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
     {"vor.vi", {SyntaxType::O_VREG_C_VREG_C_IMM}},
 
+    {"vle8.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+    {"vle16.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+    {"vle32.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+    {"vle64.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+
+    {"vse8.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+    {"vse16.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+    {"vse32.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+    {"vse64.v", {SyntaxType::O_VREG_C_LP_GPR_RP}},
+
 };
 
 bool isValidInstruction(const std::string &instruction)
@@ -1185,7 +1219,14 @@ bool isValidVITypeInstruction(const std::string &instruction)
 {
     return (VITypeInstructions.find(instruction) != VITypeInstructions.end());
 }
-
+bool isValidVLTypeInstruction(const std::string &instruction)
+{
+    return (VLTyepeInstructions.find(instruction) != VLTyepeInstructions.end());
+}
+bool isValidVSTypeInstruction(const std::string &instruction)
+{
+    return (VSTypeInstructions.find(instruction) != VSTypeInstructions.end());
+}
 
 
 bool isFInstruction(const uint32_t &instruction)
@@ -1315,7 +1356,8 @@ std::string getExpectedSyntaxes(const std::string &opcode)
         {SyntaxType::O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK, "<gp-reg>, <gp-reg>, <SEW>, <LMUL>, <tail>, <mask>"},
         {SyntaxType::O_VREG_C_VREG_C_VREG, "<vector-reg>, <vector-reg>, <vector-reg>"},
         {SyntaxType::O_VREG_C_VREG_C_GPR, "<vector-reg>, <vector-reg>, <gp-reg>"},
-        {SyntaxType::O_VREG_C_VREG_C_IMM, "<vector-reg>, <vector-reg>, <imm>"}
+        {SyntaxType::O_VREG_C_VREG_C_IMM, "<vector-reg>, <vector-reg>, <imm>"},
+        {SyntaxType::O_VREG_C_LP_GPR_RP, "<vector-reg>, (<gp-reg>)"}
     };
 
     std::string syntaxes;
@@ -1385,6 +1427,10 @@ InstructionType getInstructionType(const std::string &instruction)
         return InstructionType::V_TYPE;
     if (isValidVITypeInstruction(instruction))
         return InstructionType::V_TYPE;
+    if (isValidVLTypeInstruction(instruction))
+        return InstructionType::V_TYPE;
+    if (isValidVSTypeInstruction(instruction))
+        return InstructionType::V_TYPE;
 
     return InstructionType::UNKNOWN;
 }
@@ -1432,6 +1478,23 @@ std::string disassemble(uint32_t instruction)
     // B: name rs1, rs2, imm
     // U: name rd, imm
     // J: name rd, imm
+
+    // Vector unit-stride load/store. Shares LOAD-FP/STORE-FP with flw/fld/fsw/fsd, which use
+    // width 010/011; vector element widths are 000 (8), 101 (16), 110 (32), 111 (64).
+    if ((opcode == 0b0000111 || opcode == 0b0100111) && (funct3 == 0b000 || funct3 >= 0b101))
+    {
+        const uint32_t mop = (instruction >> 26) & 0x3;
+        const uint32_t mew = (instruction >> 28) & 0x1;
+        const uint32_t nf = (instruction >> 29) & 0x7;
+        const uint32_t umop = rs2; // lumop / sumop occupy the rs2 field
+        if (mop == 0 && mew == 0 && nf == 0 && umop == 0)
+        {
+            static const char *const kEew[8] = {"8", "", "", "", "", "16", "32", "64"};
+            const bool masked = ((instruction >> 25) & 0x1) == 0;
+            return std::string(opcode == 0b0000111 ? "vle" : "vse") + kEew[funct3] + ".v v" +
+                   std::to_string(rd) + ", (" + xr(rs1) + ")" + (masked ? ", v0.t" : "");
+        }
+    }
 
     switch (opcode)
     {
@@ -1918,6 +1981,45 @@ std::string disassemble(uint32_t instruction)
     
     case 0b1010111:
     {
+        // Vector arithmetic (OPIVV / OPIVX / OPIVI): name vd, vs2, vs1|rs1|simm5[, v0.t]
+        if (funct3 != 0b111)
+        {
+            const uint8_t funct6 = (instruction >> 26) & 0x3F;
+            const bool masked = ((instruction >> 25) & 0x1) == 0;
+            auto vr = [](uint8_t r) { return "v" + std::to_string(r); };
+
+            // Reverse lookup in the same table the assembler uses for encoding
+            std::string name;
+            for (const auto &[mnemonic, enc] : VArithmetic_type_instruction_encoding_map)
+            {
+                if (enc.funct3.to_ulong() == funct3 && enc.funct6.to_ulong() == funct6)
+                {
+                    name = mnemonic;
+                    break;
+                }
+            }
+            if (name.empty())
+            {
+                break;
+            }
+
+            std::string operand;
+            switch (funct3)
+            {
+            case 0b000: operand = vr(rs1); break;                         // OPIVV: vs1
+            case 0b100: operand = xr(rs1); break;                         // OPIVX: rs1
+            case 0b011: operand = std::to_string(signext(rs1, 5)); break; // OPIVI: simm5
+            default: break;
+            }
+            if (operand.empty())
+            {
+                break;
+            }
+
+            return name + " " + vr(rd) + ", " + vr(rs2) + ", " + operand +
+                   (masked ? ", v0.t" : "");
+        }
+
         // Get the encoding information from the instruction map
         const auto &encoding =
             VSET_type_instruction_encoding_map.at("vsetvli");
