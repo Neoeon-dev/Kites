@@ -66,11 +66,13 @@ class RVSSProcessor : public ProcessorBase
     void ExecuteDouble();
     void ExecuteCsr();
     void ExecuteVectorArithmetic();
+    void ExecuteVectorMemory();
     void HandleSyscall();
 
     void WriteMemory();
     void WriteMemoryFloat();
     void WriteMemoryDouble();
+    void WriteMemoryVector();
 
     void WriteBack();
     void WriteBackFloat();

@@ -152,3 +152,135 @@ TEST(VectorRv5sNhNf, VectorDependencyNeedsOneNop)
     for (int i = 0; i < 4; ++i)
         EXPECT_EQ(vm->registers_.ReadVectorElement(3, i, 32), 15u) << "element " << i;
 }
+
+// ---------------------------------------------------------------------------------------
+// Unit-stride vector loads / stores (vle*.v / vse*.v)
+// ---------------------------------------------------------------------------------------
+namespace
+{
+constexpr uint64_t kSrc = 0x10000000; // lui a0, 0x10000
+constexpr uint64_t kDst = 0x10000100; // a1 = a0 + 256
+// a0 = kSrc, a1 = kDst, then vsetvli with vl = `vl` and the given vtype operands.
+std::string MemPrologue(int vl, const std::string &vtype)
+{
+    return "lui a0, 0x10000\n"
+           "addi a2, x0, " + std::to_string(vl) + "\n" + kPad +
+           "addi a1, a0, 256\n" + kPad +
+           "vsetvli t0, a2, " + vtype + "\n" + kPad;
+}
+} // namespace
+
+// vle32 loads vl elements; vse32 writes them back elsewhere; the tail is untouched.
+TYPED_TEST(VectorPipelineTest, Vle32ThenVse32RoundTrip)
+{
+    this->Load(MemPrologue(4, "e32, m1, ta, ma") +
+               "vle32.v v1, (a0)\n"
+               "addi x0, x0, 0\n" // vse reads v1 in EX: one nop after the vle
+               "vse32.v v1, (a1)\n");
+    for (int i = 0; i < 4; ++i)
+        this->vm->memory_controller_.writeWord(kSrc + 4 * i, 0x11110000u + i);
+    this->SetElem(1, 4, 32, 0xAAAA); // tail element must stay
+
+    this->Run();
+
+    for (int i = 0; i < 4; ++i)
+    {
+        EXPECT_EQ(this->Elem(1, i, 32), 0x11110000u + i) << "v1[" << i << "]";
+        EXPECT_EQ(this->vm->memory_controller_.readWord(kDst + 4 * i), 0x11110000u + i)
+            << "mem[" << i << "]";
+    }
+    EXPECT_EQ(this->Elem(1, 4, 32), 0xAAAAu);
+    EXPECT_EQ(this->vm->memory_controller_.readWord(kDst + 16), 0u); // past vl: not written
+}
+
+// The element width comes from the instruction (EEW), not from vtype (SEW).
+TYPED_TEST(VectorPipelineTest, Vle8UnderE32UsesByteElements)
+{
+    this->Load(MemPrologue(4, "e32, m1, ta, ma") + "vle8.v v2, (a0)\n");
+    for (int i = 0; i < 8; ++i)
+        this->vm->memory_controller_.writeByte(kSrc + i, static_cast<uint8_t>(0xA0 + i));
+    this->SetElem(2, 4, 8, 0x55);
+
+    this->Run();
+
+    for (int i = 0; i < 4; ++i)
+        EXPECT_EQ(this->Elem(2, i, 8), 0xA0u + i) << "byte " << i;
+    EXPECT_EQ(this->Elem(2, 4, 8), 0x55u); // only vl = 4 bytes were loaded
+}
+
+// 64-bit elements spanning a register group: e64, m2, vl = 8 -> v4 and v5.
+TYPED_TEST(VectorPipelineTest, Vle64FillsWholeGroup)
+{
+    this->Load(MemPrologue(8, "e64, m2, ta, ma") + "vle64.v v4, (a0)\n");
+    for (int i = 0; i < 8; ++i)
+        this->vm->memory_controller_.writeDoubleWord(kSrc + 8 * i, 0x1234567800000000ull + i);
+
+    this->Run();
+
+    for (int i = 0; i < 4; ++i)
+    {
+        EXPECT_EQ(this->Elem(4, i, 64), 0x1234567800000000ull + i) << "v4[" << i << "]";
+        EXPECT_EQ(this->Elem(5, i, 64), 0x1234567800000000ull + 4 + i) << "v5[" << i << "]";
+    }
+}
+
+// Masked: only elements whose v0 bit is set are loaded / stored.
+TYPED_TEST(VectorPipelineTest, MaskedLoadAndStore)
+{
+    this->Load(MemPrologue(4, "e16, m1, ta, mu") +
+               "vle16.v v3, (a0), v0.t\n"
+               "vse16.v v6, (a1), v0.t\n");
+    this->SetElem(0, 0, 8, 0b0101); // elements 0 and 2 active
+    for (int i = 0; i < 4; ++i)
+    {
+        this->vm->memory_controller_.writeHalfWord(kSrc + 2 * i, 100 + i);
+        this->vm->memory_controller_.writeHalfWord(kDst + 2 * i, 0x7777);
+        this->SetElem(3, i, 16, 9);
+        this->SetElem(6, i, 16, 200 + i);
+    }
+
+    this->Run();
+
+    EXPECT_EQ(this->Elem(3, 0, 16), 100u);
+    EXPECT_EQ(this->Elem(3, 1, 16), 9u); // masked off: undisturbed
+    EXPECT_EQ(this->Elem(3, 2, 16), 102u);
+    EXPECT_EQ(this->Elem(3, 3, 16), 9u);
+    EXPECT_EQ(this->vm->memory_controller_.readHalfWord(kDst + 0), 200u);
+    EXPECT_EQ(this->vm->memory_controller_.readHalfWord(kDst + 2), 0x7777u);
+    EXPECT_EQ(this->vm->memory_controller_.readHalfWord(kDst + 4), 202u);
+    EXPECT_EQ(this->vm->memory_controller_.readHalfWord(kDst + 6), 0x7777u);
+}
+
+// EMUL = (EEW/SEW)*LMUL = (32/8)*2 = 8, so vd must be a multiple of 8: v4 is rejected.
+TYPED_TEST(VectorPipelineTest, MisalignedLoadGroupIsRejected)
+{
+    this->Load(MemPrologue(4, "e8, m2, ta, ma") + "vle32.v v4, (a0)\n");
+    this->vm->memory_controller_.writeWord(kSrc, 0xDEADBEEF);
+
+    this->Run();
+
+    EXPECT_EQ(this->Elem(4, 0, 32), 0u); // nothing written
+}
+
+// Undo puts back both the memory written by vse and the register loaded by vle.
+TYPED_TEST(VectorPipelineTest, UndoRestoresVectorLoadAndStore)
+{
+    this->Load(MemPrologue(2, "e32, m1, ta, ma") +
+               "vle32.v v1, (a0)\n"
+               "addi x0, x0, 0\n"
+               "vse32.v v1, (a1)\n");
+    this->vm->memory_controller_.writeWord(kSrc, 5);
+    this->vm->memory_controller_.writeWord(kSrc + 4, 6);
+
+    this->Run();
+    ASSERT_EQ(this->vm->memory_controller_.readWord(kDst + 4), 6u);
+
+    for (int i = 0; i < 100; ++i)
+        this->vm->Undo();
+
+    EXPECT_EQ(this->vm->memory_controller_.readWord(kDst), 0u);
+    EXPECT_EQ(this->vm->memory_controller_.readWord(kDst + 4), 0u);
+    EXPECT_EQ(this->Elem(1, 0, 32), 0u);
+    EXPECT_EQ(this->Elem(1, 1, 32), 0u);
+    EXPECT_EQ(this->vm->memory_controller_.readWord(kSrc + 4), 6u); // source untouched
+}

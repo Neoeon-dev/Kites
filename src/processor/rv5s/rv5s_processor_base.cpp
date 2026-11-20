@@ -242,6 +242,16 @@ void RV5StageVM_Base::pipeline_decode()
     id_ex_reg_.mem_write  = control_unit_.GetMemWrite();
     id_ex_reg_.mem_to_reg = control_unit_.GetMemToReg();
     id_ex_reg_.alu_op     = control_unit_.GetAluOp();
+
+    // Vector loads/stores share the FP load/store opcodes, but never write a GPR/FPR:
+    // their data travels in ex_mem_reg_.vector / mem_wb_reg_.vector instead.
+    // mem_read / mem_write stay set so the circuit view still shows the memory access.
+    if (vector_unit::IsVectorMemory(instruction))
+    {
+        id_ex_reg_.reg_write  = false;
+        id_ex_reg_.freg_write = false;
+        id_ex_reg_.mem_to_reg = false;
+    }
 }
 
 void RV5StageVM_Base::memory_writeback()
@@ -459,8 +469,17 @@ void RV5StageVM_Base::pipeline_memory()
     mem_wb_reg_.frd          = ex_mem_reg_.frd;
     mem_wb_reg_.f_alu_result = ex_mem_reg_.f_alu_result;
     mem_wb_reg_.freg_write   = ex_mem_reg_.freg_write;
-    // Vector result rides along unchanged (vector loads/stores would act here)
+    // Vector result rides along; vector loads/stores do their memory access here
     mem_wb_reg_.vector       = ex_mem_reg_.vector;
+
+    if (vector_unit::IsVectorMemory(mem_wb_reg_.instruction))
+    {
+        // A load turns into a register-group write committed in WB; a store is done here.
+        // (A rejected vle/vse arrives as kNone, and AccessMemory leaves it alone.)
+        vector_unit::AccessMemory(mem_wb_reg_.vector, memory_controller_,
+                                  current_delta_.memory_changes);
+        return;
+    }
 
     bool is_F_Instruction = instruction_set::isFInstruction(mem_wb_reg_.instruction);
     bool is_D_Instruction = instruction_set::isDInstruction(mem_wb_reg_.instruction);
@@ -836,6 +855,20 @@ void RV5StageVM_Base::execute_vector()
         out.vset = vector_unit::ComputeVset(instruction, id_ex_reg_.reg1_data,
                                             id_ex_reg_.reg2_data,
                                             registers_.ReadCsr(vector_unit::kVlCsr));
+        return;
+    }
+
+    if (vector_unit::IsVectorMemory(instruction))
+    { // vle / vse: base address is GPR rs1; the access itself happens in MEM
+        out.mem = vector_unit::PlanUnitStride(instruction, registers_, id_ex_reg_.reg1_data);
+        if (!out.mem.ok)
+        {
+            std::cerr << out.mem.error << std::endl;
+            out.reset(); // no memory access, nothing to commit
+            return;
+        }
+        out.kind = out.mem.is_load ? vector_unit::PipelineData::Kind::kLoad
+                                   : vector_unit::PipelineData::Kind::kStore;
         return;
     }
 

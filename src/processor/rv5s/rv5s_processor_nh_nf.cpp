@@ -10,6 +10,9 @@
  *   GPR operands (.vx scalar, vsetvli AVL) are read in ID like any scalar source (2 NOPs after
  *   the producer). Vector registers, vl and vtype are read in EX, so a dependency on an earlier
  *   vector instruction or vset* needs 1 NOP.
+ *   Unit-stride vle/vse: base address (rs1) is read in ID; the store data and the mask are
+ *   read in EX; memory is accessed in MEM and a load's group is committed in WB. So a vector
+ *   instruction using a vle result, or a vse storing an earlier vector result, needs 1 NOP.
  * * @author Atharva and Harshit
  */
 #include "processor/rv5s/rv5s_processor_nh_nf.h"
@@ -226,10 +229,14 @@ void RV5StageProcessorNHNF::pipeline_execute()
     uint64_t alu_result = 0;
     const bool is_f_instruction = instruction_set::isFInstruction(instruction);
     const bool is_d_instruction = instruction_set::isDInstruction(instruction);
-    const bool is_vector_instruction = vector_unit::IsOpV(instruction);
+    const bool is_vector_instruction =
+        vector_unit::IsOpV(instruction) || vector_unit::IsVectorMemory(instruction);
     if (is_vector_instruction)
     {
         // Handled by execute_vector() below, once EX/MEM is latched.
+        // For vle/vse the "ALU result" shown in EX/MEM is the base address.
+        if (vector_unit::IsVectorMemory(instruction))
+            alu_result = alu_in1;
     }
     else if (is_f_instruction)
     {

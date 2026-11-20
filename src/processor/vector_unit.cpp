@@ -5,6 +5,7 @@
 #include "processor/vector_unit.h"
 
 #include "processor/alu.h"
+#include "processor/memory_controller.h"
 #include "processor/processor_base.h"
 #include "processor/processor_types.h"
 
@@ -116,6 +117,26 @@ int LmulShift(uint64_t vtype)
     if (lmul_shift >= 4)
         lmul_shift -= 8;
     return lmul_shift;
+}
+
+// Mask bit i lives in bit i of v0.
+bool MaskBit(const RegisterFile &registers, size_t i)
+{
+    return ((registers.ReadVectorElement(0, i / 8, 8) >> (i % 8)) & 1) != 0;
+}
+
+// The width field of a vector load/store, as log2 of the element width in bits
+// (3 = 8 ... 6 = 64), or -1 if it is not a vector width.
+int EewLog2(uint32_t instruction)
+{
+    switch ((instruction >> 12) & 0b111)
+    {
+    case 0b000: return 3; // 8-bit
+    case 0b101: return 4; // 16-bit
+    case 0b110: return 5; // 32-bit
+    case 0b111: return 6; // 64-bit
+    default: return -1;
+    }
 }
 } // namespace
 
@@ -321,6 +342,160 @@ void ApplyVectorWord(RegisterFile &registers, unsigned reg_index, uint64_t value
     VectorRegister v = registers.ReadVreg(reg);
     v[reg_index % sizeOfVector] = value;
     registers.WriteVreg(reg, v);
+}
+
+bool IsVectorMemory(uint32_t instruction)
+{
+    const uint8_t opcode = instruction & 0b1111111;
+    return (opcode == kOpcodeLoadFp || opcode == kOpcodeStoreFp) && EewLog2(instruction) >= 0;
+}
+
+bool IsVectorLoad(uint32_t instruction)
+{
+    return IsVectorMemory(instruction) && (instruction & 0b1111111) == kOpcodeLoadFp;
+}
+
+bool IsVectorStore(uint32_t instruction)
+{
+    return IsVectorMemory(instruction) && (instruction & 0b1111111) == kOpcodeStoreFp;
+}
+
+MemoryPlan PlanUnitStride(uint32_t instruction, const RegisterFile &registers, uint64_t base)
+{
+    MemoryPlan plan;
+    plan.is_load = IsVectorLoad(instruction);
+    plan.base = base;
+
+    const uint8_t vreg = (instruction >> 7) & 0b11111;  // vd (load) or vs3 (store)
+    const uint8_t umop = (instruction >> 20) & 0b11111; // lumop / sumop
+    const bool masked = ((instruction >> 25) & 1) == 0; // vm=0 -> use v0 as mask
+    const uint8_t mop = (instruction >> 26) & 0b11;
+    const uint8_t mew = (instruction >> 28) & 0b1;
+    const uint8_t nf = (instruction >> 29) & 0b111;
+
+    // Only plain unit-stride is supported: no strided/indexed (mop), segment (nf),
+    // whole-register / mask / fault-only-first (umop) or 128-bit+ (mew) forms.
+    if (mop != 0 || mew != 0 || nf != 0 || umop != 0)
+    {
+        plan.error = "Unsupported vector load/store: only unit-stride vle/vse are implemented";
+        return plan;
+    }
+
+    const uint64_t vl = registers.ReadCsr(kVlCsr);
+    const uint64_t vtype = registers.ReadCsr(kVtypeCsr);
+    if ((vtype >> 63) & 1)
+    {
+        plan.error = "Illegal vector instruction: vtype.vill is set (run vsetvli first)";
+        return plan;
+    }
+
+    // The element width comes from the instruction (EEW), not from vtype (SEW).
+    // The data group then spans EMUL = (EEW / SEW) * LMUL registers, which must be 1/8..8.
+    const int eew_log2 = EewLog2(instruction);
+    const int sew_log2 = 3 + static_cast<int>((vtype >> 3) & 0b111);
+    const int emul_shift = eew_log2 - sew_log2 + LmulShift(vtype);
+    if (emul_shift < -3 || emul_shift > 3)
+    {
+        plan.error = "Illegal vector instruction: EMUL = (EEW/SEW)*LMUL is out of range";
+        return plan;
+    }
+    plan.eew = 1u << eew_log2;
+    const unsigned group = emul_shift > 0 ? (1u << emul_shift) : 1u;
+    const size_t elems_per_reg = architecture::VLEN_BITS / plan.eew;
+
+    // Register groups must be aligned to the group size, and a masked load can't
+    // overwrite v0 (it holds the mask).
+    if (vreg % group || (plan.is_load && masked && vreg == 0))
+    {
+        plan.error = "Illegal vector instruction: misaligned register group or vd=v0 when masked";
+        return plan;
+    }
+
+    // Load: start from the current destination values, so masked-off and tail
+    // elements stay unchanged.
+    if (plan.is_load)
+    {
+        plan.load.vd = vreg;
+        plan.load.group.resize(group);
+        for (unsigned r = 0; r < group; ++r)
+            plan.load.group[r] = registers.ReadVreg(vreg + r);
+    }
+
+    for (size_t i = 0; i < vl; ++i)
+    {
+        if (masked && !MaskBit(registers, i))
+            continue;
+        plan.elements.push_back(static_cast<uint32_t>(i));
+        if (!plan.is_load)
+        {
+            const size_t reg_off = i / elems_per_reg;
+            const size_t idx = i % elems_per_reg;
+            plan.store_data.push_back(registers.ReadVectorElement(vreg + reg_off, idx, plan.eew));
+        }
+    }
+
+    plan.load.ok = plan.is_load;
+    plan.ok = true;
+    return plan;
+}
+
+void AccessMemory(PipelineData &data, MemoryController &memory,
+                  std::vector<MemoryChange> &memory_changes)
+{
+    using Kind = PipelineData::Kind;
+    MemoryPlan &plan = data.mem;
+    const uint64_t bytes = plan.eew / 8;
+
+    if (data.kind == Kind::kLoad)
+    {
+        const size_t elems_per_reg = architecture::VLEN_BITS / plan.eew;
+        for (uint32_t i : plan.elements)
+        {
+            const uint64_t addr = plan.base + i * bytes;
+            uint64_t value = 0;
+            switch (plan.eew)
+            {
+            case 8: value = memory.readByte(addr); break;
+            case 16: value = memory.readHalfWord(addr); break;
+            case 32: value = memory.readWord(addr); break;
+            default: value = memory.readDoubleWord(addr); break;
+            }
+            SetVectorElement(plan.load.group[i / elems_per_reg], i % elems_per_reg, plan.eew,
+                             value);
+        }
+        // From here on a load is just a register-group write, committed in WB.
+        data.arith = std::move(plan.load);
+        data.kind = Kind::kArith;
+        return;
+    }
+
+    if (data.kind == Kind::kStore)
+    {
+        for (size_t k = 0; k < plan.elements.size(); ++k)
+        {
+            const uint64_t addr = plan.base + plan.elements[k] * bytes;
+            const uint64_t value = plan.store_data[k];
+
+            // Undo bookkeeping reads use peekByte so they do not show up as cache accesses.
+            std::vector<uint8_t> old_bytes(bytes);
+            for (uint64_t b = 0; b < bytes; ++b)
+                old_bytes[b] = memory.peekByte(addr + b);
+
+            switch (plan.eew)
+            {
+            case 8: memory.writeByte(addr, static_cast<uint8_t>(value)); break;
+            case 16: memory.writeHalfWord(addr, static_cast<uint16_t>(value)); break;
+            case 32: memory.writeWord(addr, static_cast<uint32_t>(value)); break;
+            default: memory.writeDoubleWord(addr, value); break;
+            }
+
+            std::vector<uint8_t> new_bytes(bytes);
+            for (uint64_t b = 0; b < bytes; ++b)
+                new_bytes[b] = memory.peekByte(addr + b);
+            if (old_bytes != new_bytes)
+                memory_changes.push_back({addr, std::move(old_bytes), std::move(new_bytes)});
+        }
+    }
 }
 
 } // namespace Kites::vector_unit

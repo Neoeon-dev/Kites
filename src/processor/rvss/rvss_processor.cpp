@@ -197,6 +197,12 @@ void RVSSProcessor::Execute()
         return;
     }
 
+    if (vector_unit::IsVectorMemory(current_instruction_))
+    { // RV64 V load/store (shares its opcode with flw/fsw, so check it first)
+        ExecuteVectorMemory();
+        return;
+    }
+
     if (instruction_set::isFInstruction(current_instruction_))
     { // RV64 F
         ExecuteFloat();
@@ -452,6 +458,26 @@ void RVSSProcessor::ExecuteVectorArithmetic()
     vector_result_.kind = vector_unit::PipelineData::Kind::kArith;
 }
 
+void RVSSProcessor::ExecuteVectorMemory()
+{
+    // Validate the vle/vse and gather its operands; the memory access happens in
+    // WriteMemory and a load's register group is committed in WriteBack.
+    vector_result_.reset();
+
+    const uint8_t rs1 = (current_instruction_ >> 15) & 0b11111;
+    const uint64_t base = registers_.ReadGpr(rs1);
+    execution_result_ = base; // the address, like a scalar load/store
+
+    vector_result_.mem = vector_unit::PlanUnitStride(current_instruction_, registers_, base);
+    if (!vector_result_.mem.ok)
+    {
+        std::cerr << vector_result_.mem.error << std::endl;
+        return; // kind stays kNone: no memory access, nothing to write back
+    }
+    vector_result_.kind = vector_result_.mem.is_load ? vector_unit::PipelineData::Kind::kLoad
+                                                     : vector_unit::PipelineData::Kind::kStore;
+}
+
 // TODO: implement writeback for syscalls
 void RVSSProcessor::HandleSyscall()
 {
@@ -674,6 +700,12 @@ void RVSSProcessor::WriteMemory()
         return;
     }
 
+    if (vector_unit::IsVectorMemory(current_instruction_))
+    { // RV64 V load/store
+        WriteMemoryVector();
+        return;
+    }
+
     if (instruction_set::isFInstruction(current_instruction_))
     { // RV64 F
         WriteMemoryFloat();
@@ -867,6 +899,13 @@ void RVSSProcessor::WriteMemoryDouble()
     }
 }
 
+void RVSSProcessor::WriteMemoryVector()
+{
+    // Load: reads memory into the destination group (committed in WriteBack).
+    // Store: writes memory and records the changed bytes for undo.
+    vector_unit::AccessMemory(vector_result_, memory_controller_, current_delta_.memory_changes);
+}
+
 void RVSSProcessor::WriteBack()
 {
     uint8_t opcode = current_instruction_ & 0b1111111;
@@ -876,6 +915,12 @@ void RVSSProcessor::WriteBack()
 
     if (opcode == 0b1110011 && funct3 == 0b000)
     {
+        return;
+    }
+
+    if (vector_unit::IsVectorMemory(current_instruction_))
+    { // RV64 V load/store: a load commits its group, a store has nothing left to do
+        WriteBackVector();
         return;
     }
 
