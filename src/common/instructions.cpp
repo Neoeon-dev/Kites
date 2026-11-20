@@ -378,7 +378,7 @@ static const std::unordered_set<std::string> valid_instructions = {
     "fcvt.d.wu", "fcvt.l.d", "fcvt.lu.d", "fmv.x.d", "fcvt.d.l", "fcvt.d.lu", "fmv.d.x",
 
     //RV64V
-    "vsetvli","vle8.v","vle16.v","vle32.v","vle64.v","vse8.v","vse16.v","vse32.v","vse64.v","vadd.vv", "vadd.vx","vadd.vi","vsub.vv","vsub.vx","vrsub.vx","vrsub.vi",
+    "vsetvli","vsetivli","vsetvl","vle8.v","vle16.v","vle32.v","vle64.v","vse8.v","vse16.v","vse32.v","vse64.v","vadd.vv", "vadd.vx","vadd.vi","vsub.vv","vsub.vx","vrsub.vx","vrsub.vi",
     "vand.vv", "vand.vx","vand.vi","vor.vv", "vor.vx","vor.vi","vminu.vv", "vminu.vx","vmin.vv", "vmin.vx",
     "vmaxu.vv", "vmaxu.vx","vmax.vv","vmax.vx",
 
@@ -505,9 +505,6 @@ static const std::unordered_set<std::string> FDExtensionITypeInstructions = {"fl
 
 static const std::unordered_set<std::string> FDExtensionSTypeInstructions = {"fsw", "fsd"};
 
-static const std::unordered_set<std::string> VSETVLITypeInstructions = {
-    "vsetvli"
-};
 static const std::unordered_set<std::string> VVTypeInstructions = {
     "vadd.vv", "vsub.vv", "vand.vv", "vor.vv","vminu.vv", "vmin.vv", "vmaxu.vv", "vmax.vv"
 };
@@ -755,8 +752,14 @@ std::unordered_map<std::string, FDSTypeInstructionEncoding> F_D_S_type_instructi
     {"fsd", {0b0100111, 0b011}}, // O_FPR_C_I_LP_GPR_RP
 };
 
+// vsetvli / vsetivli / vsetvl share opcode and funct3; bits [31:30] tell them apart:
+//   vsetvli  0x  zimm[10:0]       rs1   (AVL from a GPR, vtype immediate)
+//   vsetivli 11  zimm[9:0]        uimm  (AVL immediate, vtype immediate)
+//   vsetvl   10  000000 rs2       rs1   (AVL from a GPR, vtype from a GPR)
 std::unordered_map<std::string, VSETtypeInstructionEncoding> VSET_type_instruction_encoding_map = {
-    {"vsetvli", {0b1010111, 0b111}}, 
+    {"vsetvli",  {0b1010111, 0b111}},
+    {"vsetivli", {0b1010111, 0b111}},
+    {"vsetvl",   {0b1010111, 0b111}},
 };
 
 std::unordered_map<std::string, VectorArithmeticInstructionEncoding>
@@ -1050,6 +1053,8 @@ std::unordered_map<std::string, std::vector<SyntaxType>> instruction_syntax_map 
     ///////////////////////////////////////////////////////////////////////////////////
 
     {"vsetvli", {SyntaxType::O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK}},
+    {"vsetivli", {SyntaxType::O_GPR_C_UIMM_C_SEW_C_LMUL_C_TAIL_C_MASK}},
+    {"vsetvl", {SyntaxType::O_GPR_C_GPR_C_GPR}},
 
     {"vadd.vv", {SyntaxType::O_VREG_C_VREG_C_VREG}},
     {"vadd.vx", {SyntaxType::O_VREG_C_VREG_C_GPR}},
@@ -1203,10 +1208,21 @@ bool isValidFDSTypeInstruction(const std::string &instruction)
     return (FDExtensionSTypeInstructions.find(instruction) != FDExtensionSTypeInstructions.end());
 }
 
-bool isValidVSETtypeInstruction(const std::string &instruction)
+bool isValidVSETVLItypeInstruction(const std::string &instruction)
 {
-    return (VSET_type_instruction_encoding_map.find(instruction) != VSET_type_instruction_encoding_map.end());
+    return instruction == "vsetvli";
 }
+
+bool isValidVSETIVLItypeInstruction(const std::string &instruction)
+{
+    return instruction == "vsetivli";
+}
+
+bool isValidVSETVLtypeInstruction(const std::string &instruction)
+{
+    return instruction == "vsetvl";
+}
+
 bool isValidVVTypeInstruction(const std::string &instruction)
 {
     return (VVTypeInstructions.find(instruction) != VVTypeInstructions.end());
@@ -1354,6 +1370,7 @@ std::string getExpectedSyntaxes(const std::string &opcode)
         {SyntaxType::O_GPR_C_FPR_C_FPR, "<gp-reg>, <fp-reg>, <fp-reg>"},
         {SyntaxType::O_FPR_C_I_LP_GPR_RP, "<fp-reg>, <imm>(<gp-reg>)"},
         {SyntaxType::O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK, "<gp-reg>, <gp-reg>, <SEW>, <LMUL>, <tail>, <mask>"},
+        {SyntaxType::O_GPR_C_UIMM_C_SEW_C_LMUL_C_TAIL_C_MASK, "<gp-reg>, <uimm>, <SEW>, <LMUL>, <tail>, <mask>"},
         {SyntaxType::O_VREG_C_VREG_C_VREG, "<vector-reg>, <vector-reg>, <vector-reg>"},
         {SyntaxType::O_VREG_C_VREG_C_GPR, "<vector-reg>, <vector-reg>, <gp-reg>"},
         {SyntaxType::O_VREG_C_VREG_C_IMM, "<vector-reg>, <vector-reg>, <imm>"},
@@ -1419,7 +1436,11 @@ InstructionType getInstructionType(const std::string &instruction)
         return InstructionType::F_TYPE;
     // if (isValidBaseExtensionInstruction(instruction))
     //     return InstructionType::BASE_EXT;
-    if (isValidVSETtypeInstruction(instruction))
+    if (isValidVSETVLItypeInstruction(instruction))
+        return InstructionType::V_TYPE;
+    if (isValidVSETIVLItypeInstruction(instruction))
+        return InstructionType::V_TYPE;
+    if (isValidVSETVLtypeInstruction(instruction))
         return InstructionType::V_TYPE;
     if (isValidVVTypeInstruction(instruction))
         return InstructionType::V_TYPE;
@@ -2020,22 +2041,25 @@ std::string disassemble(uint32_t instruction)
                    (masked ? ", v0.t" : "");
         }
 
-        // Get the encoding information from the instruction map
-        const auto &encoding =
-            VSET_type_instruction_encoding_map.at("vsetvli");
+        // vsetvli / vsetivli / vsetvl (funct3 = 111); bits [31:30] pick the form
+        const bool is_vsetvl = ((instruction >> 31) & 0x1) == 1 && ((instruction >> 30) & 0x1) == 0;
+        const bool is_vsetivli = ((instruction >> 30) & 0b11) == 0b11;
 
-        // Check whether this is the supported vsetvli format
-        if (funct3 != encoding.funct3.to_ulong() ||
-            ((instruction >> 31) & 0x1) != 0)
+        if (is_vsetvl)
         {
-            break;
+            // vtype comes from rs2; bits [30:25] must be zero
+            if (((instruction >> 25) & 0x3F) != 0)
+            {
+                break;
+            }
+            return "vsetvl " + xr(rd) + ", " + xr(rs1) + ", " + xr(rs2);
         }
 
-        // Extract the 11-bit vtypei immediate
-        const uint32_t zimm = (instruction >> 20) & 0x7FF;
+        // vsetvli has an 11-bit vtype immediate, vsetivli a 10-bit one
+        const uint32_t zimm = is_vsetivli ? (instruction >> 20) & 0x3FF : (instruction >> 20) & 0x7FF;
 
-        // Bits [10:8] are reserved and must be zero
-        if ((zimm & 0x700) != 0)
+        // Bits [10:8] (vsetvli) / [9:8] (vsetivli) are reserved and must be zero
+        if ((zimm >> 8) != 0)
         {
             break;
         }
@@ -2082,10 +2106,14 @@ std::string disassemble(uint32_t instruction)
         // Decode tail and mask policies
         const std::string tail = vta ? "ta" : "tu";
         const std::string mask = vma ? "ma" : "mu";
+        const std::string config = sew + ", " + lmul + ", " + tail + ", " + mask;
 
-        return "vsetvli " + xr(rd) + ", " + xr(rs1) +
-            ", " + sew + ", " + lmul +
-            ", " + tail + ", " + mask;
+        if (is_vsetivli)
+        {
+            // AVL is the 5-bit unsigned immediate in the rs1 field
+            return "vsetivli " + xr(rd) + ", " + std::to_string(rs1) + ", " + config;
+        }
+        return "vsetvli " + xr(rd) + ", " + xr(rs1) + ", " + config;
     }
     
 

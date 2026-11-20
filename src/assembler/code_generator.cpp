@@ -52,9 +52,17 @@ printIntermediateCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCo
             code = block.getOpcode() + " " + block.getRd() + " " + block.getImm() + " <" +
                    block.getLabel() + ">";
         }
-        else if(instruction_set::isValidVSETtypeInstruction(block.getOpcode()))
+        else if(instruction_set::isValidVSETVLItypeInstruction(block.getOpcode()))
         {
             code = block.getOpcode() + " " + block.getRd() + " " + block.getRs1() + " " + block.getImm();
+        }
+        else if(instruction_set::isValidVSETIVLItypeInstruction(block.getOpcode()))
+        {
+            code = block.getOpcode() + " " + block.getRd() + " " + block.getRs1() + " " + block.getImm();
+        }
+        else if(instruction_set::isValidVSETVLtypeInstruction(block.getOpcode()))
+        {
+            code = block.getOpcode() + " " + block.getRd() + " " + block.getRs1() + " " + block.getRs2();
         }
         else if(instruction_set::isValidVVTypeInstruction(block.getOpcode()))
         {
@@ -374,14 +382,49 @@ uint32_t generateFDSTypeMachineCode(const ICUnit &block)
     return machineCode;
 }
 
-uint32_t generateVSETtypeMachineCode(const ICUnit &block)
+uint32_t generateVSETVLItypeMachineCode(const ICUnit &block)
 {
+    // vsetvli rd, rs1, vtypei:  0 | zimm[10:0] | rs1 | 111 | rd | 1010111
     const auto &encoding = instruction_set::VSET_type_instruction_encoding_map.at(block.getOpcode());
     const uint32_t rd = extractRegisterIndex(block.getRd());
     const uint32_t rs1 = extractRegisterIndex(block.getRs1());
-    const uint32_t imm = static_cast<uint32_t>(std::stoi(block.getImm()));
+    const uint32_t imm = static_cast<uint32_t>(std::stoi(block.getImm())) & 0x7FF;
     uint32_t machineCode = 0;
     machineCode |= (imm << 20);
+    machineCode |= (rs1 << 15);
+    machineCode |= (encoding.funct3.to_ulong() << 12);
+    machineCode |= (rd << 7);
+    machineCode |= encoding.opcode.to_ulong();
+    return machineCode;
+}
+
+uint32_t generateVSETIVLItypeMachineCode(const ICUnit &block)
+{
+    // vsetivli rd, uimm, vtypei:  11 | zimm[9:0] | uimm[4:0] | 111 | rd | 1010111
+    const auto &encoding = instruction_set::VSET_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t rd = extractRegisterIndex(block.getRd());
+    const uint32_t uimm = static_cast<uint32_t>(std::stoi(block.getRs1())) & 0x1F; // a number, not a register
+    const uint32_t imm = static_cast<uint32_t>(std::stoi(block.getImm())) & 0x3FF;
+    uint32_t machineCode = 0;
+    machineCode |= (0b11u << 30);
+    machineCode |= (imm << 20);
+    machineCode |= (uimm << 15);
+    machineCode |= (encoding.funct3.to_ulong() << 12);
+    machineCode |= (rd << 7);
+    machineCode |= encoding.opcode.to_ulong();
+    return machineCode;
+}
+
+uint32_t generateVSETVLtypeMachineCode(const ICUnit &block)
+{
+    // vsetvl rd, rs1, rs2:  1000000 | rs2 | rs1 | 111 | rd | 1010111
+    const auto &encoding = instruction_set::VSET_type_instruction_encoding_map.at(block.getOpcode());
+    const uint32_t rd = extractRegisterIndex(block.getRd());
+    const uint32_t rs1 = extractRegisterIndex(block.getRs1());
+    const uint32_t rs2 = extractRegisterIndex(block.getRs2());
+    uint32_t machineCode = 0;
+    machineCode |= (1u << 31);
+    machineCode |= (rs2 << 20);
     machineCode |= (rs1 << 15);
     machineCode |= (encoding.funct3.to_ulong() << 12);
     machineCode |= (rd << 7);
@@ -567,9 +610,15 @@ generateMachineCode(const std::vector<std::pair<ICUnit, bool>> &IntermediateCode
         {
             code = generateFDSTypeMachineCode(block);
         }
-        else if (instruction_set::isValidVSETtypeInstruction(block.getOpcode()))
+        else if (instruction_set::isValidVSETVLItypeInstruction(block.getOpcode()))
         {
-            code = generateVSETtypeMachineCode(block);
+            code = generateVSETVLItypeMachineCode(block);
+        }
+        else if(instruction_set::isValidVSETIVLItypeInstruction(block.getOpcode())){
+            code = generateVSETIVLItypeMachineCode(block);
+        }
+        else if(instruction_set::isValidVSETVLtypeInstruction(block.getOpcode())){
+            code = generateVSETVLtypeMachineCode(block);
         }
         else if (instruction_set::isValidVVTypeInstruction(block.getOpcode()))
         {

@@ -188,6 +188,8 @@
     ],
     "VInstruction": [
         "vsetvli",
+        "vsetivli",
+        "vsetvl",
         "vle8.v",
         "vle16.v",
         "vle32.v",

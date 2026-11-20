@@ -505,7 +505,9 @@ uint32_t generateFDR4TypeMachineCode(const ICUnit &block);
 uint32_t generateFDITypeMachineCode(const ICUnit &block);
 uint32_t generateFDSTypeMachineCode(const ICUnit &block);
 
-uint32_t generateVSETtypeMachineCode(const ICUnit &block);
+uint32_t generateVSETVLItypeMachineCode(const ICUnit &block);
+uint32_t generateVSETIVLItypeMachineCode(const ICUnit &block);
+uint32_t generateVSETVLtypeMachineCode(const ICUnit &block);
 
 
 /**

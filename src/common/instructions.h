@@ -488,6 +488,7 @@ enum class SyntaxType
                          ///< ) rparen
 
     O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK, ///< Opcode general-register , general-register , <SEW>, <LMUL>, <tail>, <mask>
+    O_GPR_C_UIMM_C_SEW_C_LMUL_C_TAIL_C_MASK, ///< Opcode general-register , <uimm>, <SEW>, <LMUL>, <tail>, <mask>
 
     O_VREG_C_VREG_C_VREG, ///< Opcode vector-register , vector-register , vector-register
     O_VREG_C_VREG_C_GPR, ///< Opcode vector-register , vector-register , general-register
@@ -566,7 +567,9 @@ bool isValidFDR4TypeInstruction(const std::string &instruction);
 bool isValidFDITypeInstruction(const std::string &instruction);
 bool isValidFDSTypeInstruction(const std::string &instruction);
 
-bool isValidVSETtypeInstruction(const std::string &instruction);
+bool isValidVSETVLItypeInstruction(const std::string &instruction);
+bool isValidVSETIVLItypeInstruction(const std::string &instruction);
+bool isValidVSETVLtypeInstruction(const std::string &instruction);
 bool isValidVVTypeInstruction(const std::string &instruction);
 bool isValidVXTypeInstruction(const std::string &instruction);
 bool isValidVITypeInstruction(const std::string &instruction);

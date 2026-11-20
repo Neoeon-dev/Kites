@@ -487,6 +487,11 @@ void Parser::parseTextDirective()
                     valid_syntax = parse_O_GPR_C_GPR_C_SEW_C_LMUL_C_TAIL_C_MASK();
                     break;
                 }
+                case instruction_set::SyntaxType::O_GPR_C_UIMM_C_SEW_C_LMUL_C_TAIL_C_MASK:
+                {
+                    valid_syntax = parse_O_GPR_C_UIMM_C_SEW_C_LMUL_C_TAIL_C_MASK();
+                    break;
+                }
                 case instruction_set::SyntaxType::O_VREG_C_VREG_C_VREG:
                 {
                     valid_syntax = parse_O_VREG_C_VREG_C_VREG();
