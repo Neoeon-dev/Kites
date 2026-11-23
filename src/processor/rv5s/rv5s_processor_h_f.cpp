@@ -15,6 +15,7 @@
 #include "processor/alu.h"
 #include "processor/pipeline_registers.h"
 #include "processor/processor_base.h"
+#include "processor/vector_unit.h"
 #include <algorithm>
 #include <chrono>
 #include <iostream>
@@ -222,8 +223,9 @@ void RV5StageProcessorHF::Step()
     else
     {
         // Pipeline is free. Check for a NEW hazard using the external HDU function.
-        stalls_needed = check_data_hazard(if_id_reg_, id_ex_reg_, ex_mem_reg_,
-                                          true /* is_forwarding_enabled */);
+        stalls_needed = std::max(check_data_hazard(if_id_reg_, id_ex_reg_, ex_mem_reg_,
+                                                   true /* is_forwarding_enabled */),
+                                 vector_hazard_stalls());
         if (stalls_needed > 0)
         {
             // Start the stall: stalls_needed cycles total. 1 cycle is handled now.
@@ -284,6 +286,11 @@ void RV5StageProcessorHF::pipeline_execute()
 
     bool is_f_instruction = instruction_set::isFInstruction(instruction);
     bool is_d_instruction = instruction_set::isDInstruction(instruction);
+    bool is_vector_instruction = vector_unit::IsVectorInstruction(instruction);
+
+    // GPR operands after forwarding; vector instructions take theirs from here.
+    uint64_t fwd_rs1 = id_ex_reg_.reg1_data;
+    uint64_t fwd_rs2 = id_ex_reg_.reg2_data;
 
     if (is_f_instruction)
     {
@@ -344,6 +351,9 @@ void RV5StageProcessorHF::pipeline_execute()
                                                   : mem_wb_reg_.prev_alu_result;
         }
 
+        fwd_rs1 = alu_in1;
+        fwd_rs2 = alu_in2;
+
         // Re-apply immediate value check (must happen AFTER forwarding application)
         if (id_ex_reg_.alu_src)
         {
@@ -352,7 +362,10 @@ void RV5StageProcessorHF::pipeline_execute()
 
         // --- EXECUTION ---
         alu::AluOp alu_operation = control_unit_.GetAluSignal(instruction, id_ex_reg_.alu_op > 0);
-        std::tie(alu_result, overflow) = alu::Alu::execute(alu_operation, alu_in1, alu_in2);
+        if (is_vector_instruction)
+            alu_result = 0; // set by execute_vector() below, once EX/MEM is latched
+        else
+            std::tie(alu_result, overflow) = alu::Alu::execute(alu_operation, alu_in1, alu_in2);
         // temporary fix for lui instruction
 
         if ((id_ex_reg_.instruction & 0b1111111) == 0b0110111) // lui
@@ -399,6 +412,13 @@ void RV5StageProcessorHF::pipeline_execute()
     ex_mem_reg_.prev_branch_taken = ex_mem_reg_.branch_taken;
     ex_mem_reg_.branch_taken = false;
     ex_mem_reg_.branch_target_pc = 0;
+
+    // Vector result (empty for scalar instructions so nothing stale reaches WB).
+    // Vector registers have no forwarding paths: the HDU stalls for those instead.
+    if (is_vector_instruction)
+        execute_vector(fwd_rs1, fwd_rs2);
+    else
+        ex_mem_reg_.vector.reset();
 
     uint8_t opcode = instruction & 0b1111111;
 

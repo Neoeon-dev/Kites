@@ -96,8 +96,12 @@ class RV5StageVM_Base : public ProcessorBase
     void execute_csr() {};
 
     // --- Vector (RVV) support, shared by every RV5S variant ---
-    // EX: computes the vector result of id_ex_reg_ into ex_mem_reg_.vector.
-    void execute_vector();
+    // EX: computes the vector result of id_ex_reg_ into ex_mem_reg_.vector. Call after
+    // EX/MEM is latched. rs1/rs2 are the GPR operands (forwarded, where the VM forwards).
+    void execute_vector(uint64_t rs1_value, uint64_t rs2_value);
+    // HDU: stalls the IF/ID vector instruction needs for vector register / vl / vtype
+    // dependencies on the instruction now in EX/MEM (0 or 1). Call after EX, before ID.
+    int vector_hazard_stalls() const;
     // WB: commits mem_wb_reg_.vector (vector group, or vl/vtype/rd for vset*).
     void writeback_vector();
 

@@ -145,6 +145,38 @@ struct PipelineData
     void reset() { *this = PipelineData{}; }
 };
 
+// ---------------------------------------------------------------------------------------
+// Hazard detection helpers (used by the RV5S Hazard Detection Unit)
+//
+// Pipeline timing of a vector instruction: GPR operands are read in ID, vector registers,
+// vl and vtype are read in EX, and everything (vector group, vl/vtype, vset's rd) is
+// written in WB. WB runs before EX within a cycle, so a vector consumer only collides
+// with the producer directly ahead of it (1 stall); a GPR consumer of vset's rd behaves
+// like any other GPR dependency.
+// ---------------------------------------------------------------------------------------
+
+/// True for any instruction executed by the vector unit (OP-V or vle/vse).
+bool IsVectorInstruction(uint32_t instruction);
+
+/// Whether the rs1 / rs2 fields of a vector instruction name a GPR it reads.
+/// (For .vv/.vi forms the rs1 field is vs1/imm5, for vle/vse rs2 is lumop/sumop, ...)
+bool ReadsGprRs1(uint32_t instruction);
+bool ReadsGprRs2(uint32_t instruction);
+
+/// True if the instruction reads vl/vtype in EX: every vector instruction except
+/// vset*, which only reads vl in the "keep vl" form (rs1 = rd = x0).
+bool ReadsVectorConfig(uint32_t instruction);
+
+/**
+ * @brief Bitmask (bit i = v<i>) of the vector registers an instruction reads in EX.
+ * @param vtype The vtype the instruction will execute under (sizes the register groups).
+ * Includes the old destination group (kept for masked-off/tail elements) and v0 if masked.
+ */
+uint32_t VregsRead(uint32_t instruction, uint64_t vtype);
+
+/// Bitmask of the vector registers an in-flight result will write in WB.
+uint32_t VregsWritten(const PipelineData &data);
+
 /**
  * @brief MEM: performs the memory access of a kLoad/kStore (no-op for other kinds).
  *

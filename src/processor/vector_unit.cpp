@@ -439,6 +439,110 @@ MemoryPlan PlanUnitStride(uint32_t instruction, const RegisterFile &registers, u
     return plan;
 }
 
+// ---------------------------------------------------------------------------------------
+// Hazard detection helpers
+// ---------------------------------------------------------------------------------------
+namespace
+{
+// Mask of `count` registers starting at `first` (clipped at v31).
+uint32_t GroupMask(unsigned first, unsigned count)
+{
+    uint32_t mask = 0;
+    for (unsigned r = first; r < first + count && r < 32; ++r)
+        mask |= uint32_t{1} << r;
+    return mask;
+}
+
+// Registers spanned by a group of 2^shift registers (fractional groups use one).
+unsigned GroupSize(int shift)
+{
+    return shift > 0 ? (1u << std::min(shift, 3)) : 1u;
+}
+} // namespace
+
+bool IsVectorInstruction(uint32_t instruction)
+{
+    return IsOpV(instruction) || IsVectorMemory(instruction);
+}
+
+bool ReadsGprRs1(uint32_t instruction)
+{
+    if (IsVectorMemory(instruction))
+        return true; // base address
+    if (!IsOpV(instruction))
+        return false;
+
+    switch ((instruction >> 12) & 0b111)
+    {
+    case kOpIVX:
+    case kOpMVX:
+        return true; // scalar operand
+    case kOpCfg:
+        // vsetvli / vsetvl read AVL from rs1; vsetivli has uimm5 there.
+        return ((instruction >> 30) & 0b11) != 0b11;
+    default:
+        return false; // vs1 or imm5
+    }
+}
+
+bool ReadsGprRs2(uint32_t instruction)
+{
+    if (IsVectorMemory(instruction))
+        return ((instruction >> 26) & 0b11) == 0b10; // strided: rs2 holds the stride
+    // vsetvl takes vtype from rs2
+    return IsVset(instruction) && ((instruction >> 31) & 1) == 1 &&
+           ((instruction >> 30) & 1) == 0;
+}
+
+bool ReadsVectorConfig(uint32_t instruction)
+{
+    if (IsVset(instruction))
+    {
+        const bool vsetivli = ((instruction >> 30) & 0b11) == 0b11;
+        const uint8_t rd = (instruction >> 7) & 0x1F;
+        const uint8_t rs1 = (instruction >> 15) & 0x1F;
+        return !vsetivli && rd == 0 && rs1 == 0; // keep current vl
+    }
+    return IsVectorInstruction(instruction);
+}
+
+uint32_t VregsRead(uint32_t instruction, uint64_t vtype)
+{
+    if (IsVset(instruction) || !IsVectorInstruction(instruction))
+        return 0;
+
+    const bool masked = ((instruction >> 25) & 1) == 0;
+    uint32_t mask = masked ? 1u : 0u; // v0 holds the mask
+    const int lmul_shift = LmulShift(vtype);
+
+    if (IsVectorMemory(instruction))
+    {
+        // vd of a load (old values kept for inactive elements) or vs3 of a store,
+        // sized by EMUL = (EEW / SEW) * LMUL.
+        const int sew_log2 = 3 + static_cast<int>((vtype >> 3) & 0b111);
+        const int emul_shift = EewLog2(instruction) - sew_log2 + lmul_shift;
+        return mask | GroupMask((instruction >> 7) & 0x1F, GroupSize(emul_shift));
+    }
+
+    const unsigned group = GroupSize(lmul_shift);
+    const uint8_t funct3 = (instruction >> 12) & 0b111;
+    mask |= GroupMask((instruction >> 20) & 0x1F, group); // vs2
+    mask |= GroupMask((instruction >> 7) & 0x1F, group);  // vd (old values)
+    if (funct3 == kOpIVV || funct3 == kOpMVV)
+        mask |= GroupMask((instruction >> 15) & 0x1F, group); // vs1
+    return mask;
+}
+
+uint32_t VregsWritten(const PipelineData &data)
+{
+    using Kind = PipelineData::Kind;
+    if (data.kind == Kind::kArith)
+        return GroupMask(data.arith.vd, static_cast<unsigned>(data.arith.group.size()));
+    if (data.kind == Kind::kLoad)
+        return GroupMask(data.mem.load.vd, static_cast<unsigned>(data.mem.load.group.size()));
+    return 0;
+}
+
 void AccessMemory(PipelineData &data, MemoryController &memory,
                   std::vector<MemoryChange> &memory_changes)
 {

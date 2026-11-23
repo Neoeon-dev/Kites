@@ -1,5 +1,6 @@
 // Vector instructions through the shared vector_unit on RVSS and on the
-// 5-stage pipeline without hazard detection / forwarding (RV5S NH_NF).
+// 5-stage pipelines: NH_NF (no hazard detection) and the hazard-detecting H_NF / H_F.
+// Hazard-specific behaviour is covered in vector_rv5s_hazard_test.cpp.
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -7,6 +8,8 @@
 #include <string>
 
 #include "assembler/assembler.h"
+#include "processor/rv5s/rv5s_processor_h_f.h"
+#include "processor/rv5s/rv5s_processor_h_nf.h"
 #include "processor/rv5s/rv5s_processor_nh_nf.h"
 #include "processor/rvss/rvss_processor.h"
 #include "utils/utils.h"
@@ -44,7 +47,8 @@ class VectorPipelineTest : public ::testing::Test
     }
 };
 
-using VmTypes = ::testing::Types<Kites::RVSSProcessor, Kites::RV5StageProcessorNHNF>;
+using VmTypes = ::testing::Types<Kites::RVSSProcessor, Kites::RV5StageProcessorNHNF,
+                                 Kites::RV5StageProcessorHNF, Kites::RV5StageProcessorHF>;
 TYPED_TEST_SUITE(VectorPipelineTest, VmTypes);
 } // namespace
 

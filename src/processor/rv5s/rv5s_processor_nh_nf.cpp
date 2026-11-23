@@ -284,7 +284,7 @@ void RV5StageProcessorNHNF::pipeline_execute()
 
     // Vector result (empty for scalar instructions so nothing stale reaches WB)
     if (is_vector_instruction)
-        execute_vector();
+        execute_vector(id_ex_reg_.reg1_data, id_ex_reg_.reg2_data);
     else
         ex_mem_reg_.vector.reset();
 

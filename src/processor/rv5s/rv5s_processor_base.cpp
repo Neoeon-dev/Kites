@@ -1,4 +1,5 @@
 #include "processor/vector_unit.h"
+#include "processor/rv5s/rv5s_hdu.h"
 #include "common/debug_colors.h"
 #include "common/instructions.h"
 #include "processor/rv5s/rv5s_processor_base.h"
@@ -251,6 +252,12 @@ void RV5StageVM_Base::pipeline_decode()
         id_ex_reg_.reg_write  = false;
         id_ex_reg_.freg_write = false;
         id_ex_reg_.mem_to_reg = false;
+    }
+    // vset* writes the new vl to GPR rd (committed in WB by writeback_vector). Flag it
+    // so the hazard unit and the forwarding paths see the dependency.
+    else if (vector_unit::IsVset(instruction))
+    {
+        id_ex_reg_.reg_write = id_ex_reg_.rd != 0;
     }
 }
 
@@ -840,7 +847,17 @@ uint64_t RV5StageVM_Base::execute_double()
     return alu_result;
 }
 
-void RV5StageVM_Base::execute_vector()
+int RV5StageVM_Base::vector_hazard_stalls() const
+{
+    // The vtype the IF/ID instruction will run under: a vset* now in MEM/WB has not
+    // committed yet (WB already ran this cycle), but will before that instruction's EX.
+    const uint64_t vtype = mem_wb_reg_.vector.kind == vector_unit::PipelineData::Kind::kVset
+                               ? mem_wb_reg_.vector.vset.vtype
+                               : registers_.ReadCsr(vector_unit::kVtypeCsr);
+    return check_vector_hazard(if_id_reg_, ex_mem_reg_, vtype);
+}
+
+void RV5StageVM_Base::execute_vector(uint64_t rs1_value, uint64_t rs2_value)
 {
     // Operands: GPR rs1/rs2 were read in ID (id_ex_reg_.reg1_data / reg2_data), like any
     // scalar source. Vector registers, vl and vtype are read here in EX from the
@@ -852,15 +869,17 @@ void RV5StageVM_Base::execute_vector()
     if (vector_unit::IsVset(instruction))
     {
         out.kind = vector_unit::PipelineData::Kind::kVset;
-        out.vset = vector_unit::ComputeVset(instruction, id_ex_reg_.reg1_data,
-                                            id_ex_reg_.reg2_data,
+        out.vset = vector_unit::ComputeVset(instruction, rs1_value, rs2_value,
                                             registers_.ReadCsr(vector_unit::kVlCsr));
+        // The new vl is vset's GPR result: forwarding paths pick it up from alu_result.
+        ex_mem_reg_.alu_result = out.vset.vl;
         return;
     }
 
     if (vector_unit::IsVectorMemory(instruction))
     { // vle / vse: base address is GPR rs1; the access itself happens in MEM
-        out.mem = vector_unit::PlanUnitStride(instruction, registers_, id_ex_reg_.reg1_data);
+        ex_mem_reg_.alu_result = rs1_value; // shown as the address in EX/MEM
+        out.mem = vector_unit::PlanUnitStride(instruction, registers_, rs1_value);
         if (!out.mem.ok)
         {
             std::cerr << out.mem.error << std::endl;
@@ -872,7 +891,7 @@ void RV5StageVM_Base::execute_vector()
         return;
     }
 
-    out.arith = vector_unit::ExecuteArithmetic(instruction, registers_, id_ex_reg_.reg1_data);
+    out.arith = vector_unit::ExecuteArithmetic(instruction, registers_, rs1_value);
     if (!out.arith.ok)
     {
         std::cerr << out.arith.error << std::endl;

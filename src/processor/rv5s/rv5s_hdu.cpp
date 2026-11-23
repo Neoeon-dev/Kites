@@ -11,14 +11,12 @@
 #include <iostream>
 
 
+#include "processor/rv5s/rv5s_hdu.h"
 #include "processor/pipeline_registers.h"
+#include "processor/vector_unit.h"
 
 namespace Kites
 {
-// Define stall count constants
-constexpr int STALL_NONE = 0;
-constexpr int STALL_ONE_CYCLE = 1;
-constexpr int STALL_TWO_CYCLES = 2;
 
 /**
  * @brief Checks for data hazards and returns the number of stalls required.
@@ -45,6 +43,19 @@ int check_data_hazard(const IF_ID_Register &if_id_reg, const ID_EX_Register &id_
     uint8_t if_id_frs2 = (instruction >> 20) & 0x1F;
     uint8_t if_id_frs3 = (instruction >> 27) & 0x1F; // For FMA (R4 format)
 
+    // Vector instructions reuse these fields for vs1/vs2/imm5/lumop, so only count the
+    // fields that really name a GPR, and never an FPR. Index 0 can never match a
+    // producer (x0 writes are ignored below), so it doubles as "not a GPR source".
+    bool reads_fpr = true;
+    if (vector_unit::IsVectorInstruction(instruction))
+    {
+        if (!vector_unit::ReadsGprRs1(instruction))
+            if_id_rs1 = 0;
+        if (!vector_unit::ReadsGprRs2(instruction))
+            if_id_rs2 = 0;
+        reads_fpr = false;
+    }
+
     // --- 2. Check for GPR Hazard (Source writes GPR, Dependent reads GPR) ---
     // Two-cycle hazard: current EX/MEM instruction writes a GPR the IF/ID instruction reads
     bool gpr_hazard_two_cycle = (ex_mem_reg.reg_write && (ex_mem_reg.rd != 0)) &&
@@ -62,12 +73,12 @@ int check_data_hazard(const IF_ID_Register &if_id_reg, const ID_EX_Register &id_
     // Note: FPR f0 is NOT hardwired to zero (unlike GPR x0), so no frd != 0 check needed.
     // Two-cycle hazard: current EX/MEM instruction writes an FPR the IF/ID instruction reads
     bool fpr_hazard_two_cycle =
-        (ex_mem_reg.freg_write) && (ex_mem_reg.frd == if_id_frs1 || ex_mem_reg.frd == if_id_frs2 ||
+        reads_fpr && (ex_mem_reg.freg_write) && (ex_mem_reg.frd == if_id_frs1 || ex_mem_reg.frd == if_id_frs2 ||
                                     ex_mem_reg.frd == if_id_frs3);
 
     // One-cycle hazard: previous EX/MEM instruction writes an FPR the IF/ID instruction reads
     bool fpr_hazard_one_cycle =
-        (ex_mem_reg.prev_freg_write) &&
+        reads_fpr && (ex_mem_reg.prev_freg_write) &&
         (ex_mem_reg.prev_frd == if_id_frs1 || ex_mem_reg.prev_frd == if_id_frs2 ||
          ex_mem_reg.prev_frd == if_id_frs3);
 
@@ -90,7 +101,7 @@ int check_data_hazard(const IF_ID_Register &if_id_reg, const ID_EX_Register &id_
             bool gpr_load_use = (id_ex_reg.reg_write && id_ex_reg.rd != 0) &&
                                 (id_ex_reg.rd == if_id_rs1 || id_ex_reg.rd == if_id_rs2);
 
-            bool fpr_load_use = (id_ex_reg.freg_write) &&
+            bool fpr_load_use = reads_fpr && (id_ex_reg.freg_write) &&
                                 (id_ex_reg.frd == if_id_frs1 || id_ex_reg.frd == if_id_frs2 ||
                                  id_ex_reg.frd == if_id_frs3);
 
@@ -112,6 +123,34 @@ int check_data_hazard(const IF_ID_Register &if_id_reg, const ID_EX_Register &id_
         return STALL_TWO_CYCLES;
     }
     else if (any_hazard_one_cycle)
+    {
+        return STALL_ONE_CYCLE;
+    }
+
+    return STALL_NONE;
+}
+
+int check_vector_hazard(const IF_ID_Register &if_id_reg, const EX_MEM_Register &ex_mem_reg,
+                        uint64_t consumer_vtype)
+{
+    const uint32_t instruction = if_id_reg.instruction;
+    if (!vector_unit::IsVectorInstruction(instruction))
+        return STALL_NONE;
+
+    // Only the instruction directly ahead matters: its WB lands one cycle after the
+    // consumer's EX would. Anything further ahead commits in WB before that EX runs.
+    const auto &producer = ex_mem_reg.vector;
+
+    // vl/vtype: written by vset* in WB, read by vector instructions in EX.
+    if (producer.kind == vector_unit::PipelineData::Kind::kVset &&
+        vector_unit::ReadsVectorConfig(instruction))
+    {
+        return STALL_ONE_CYCLE;
+    }
+
+    // Vector registers: written in WB, read in EX. No vector forwarding paths exist,
+    // so this stall applies with and without forwarding.
+    if (vector_unit::VregsWritten(producer) & vector_unit::VregsRead(instruction, consumer_vtype))
     {
         return STALL_ONE_CYCLE;
     }

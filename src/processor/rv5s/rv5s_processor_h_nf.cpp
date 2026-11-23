@@ -14,6 +14,7 @@
 #include "processor/alu.h"
 #include "processor/pipeline_registers.h"
 #include "processor/processor_base.h"
+#include "processor/vector_unit.h"
 #include <algorithm>
 #include <chrono>
 #include <iostream>
@@ -161,7 +162,8 @@ void RV5StageProcessorHNF::Step()
     }
     else
     {
-        stalls_needed = check_data_hazard(if_id_reg_, id_ex_reg_, ex_mem_reg_, false);
+        stalls_needed = std::max(check_data_hazard(if_id_reg_, id_ex_reg_, ex_mem_reg_, false),
+                                 vector_hazard_stalls());
         if (stalls_needed > 0)
         {
             stall_cycles_ = stalls_needed - 1;
@@ -214,6 +216,7 @@ void RV5StageProcessorHNF::pipeline_execute()
     uint32_t cur_instruction = id_ex_reg_.instruction;
     const bool is_f_instruction = instruction_set::isFInstruction(cur_instruction);
     const bool is_d_instruction = instruction_set::isDInstruction(cur_instruction);
+    const bool is_vector_instruction = vector_unit::IsVectorInstruction(cur_instruction);
 
     uint64_t alu_in1 = id_ex_reg_.reg1_data;
     uint64_t alu_in2 =
@@ -223,7 +226,11 @@ void RV5StageProcessorHNF::pipeline_execute()
     uint64_t alu_result = 0;
 
     bool overflow;
-    if (is_f_instruction)
+    if (is_vector_instruction)
+    {
+        // Computed by execute_vector() below, once EX/MEM is latched.
+    }
+    else if (is_f_instruction)
     {
         alu_result = pipeline_execute_float();
     }
@@ -262,6 +269,12 @@ void RV5StageProcessorHNF::pipeline_execute()
     ex_mem_reg_.prev_branch_taken = ex_mem_reg_.branch_taken;
     ex_mem_reg_.branch_taken = false;
     ex_mem_reg_.branch_target_pc = 0;
+
+    // Vector result (empty for scalar instructions so nothing stale reaches WB)
+    if (is_vector_instruction)
+        execute_vector(id_ex_reg_.reg1_data, id_ex_reg_.reg2_data);
+    else
+        ex_mem_reg_.vector.reset();
 
     uint32_t instruction = id_ex_reg_.instruction;
     uint8_t opcode = instruction & 0b1111111;

@@ -30,4 +30,23 @@ constexpr int STALL_TWO_CYCLES = 2;
  */
 int check_data_hazard(const IF_ID_Register &if_id_reg, const ID_EX_Register &id_ex_reg,
                       const EX_MEM_Register &ex_mem_reg, bool is_forwarding_enabled);
+
+/**
+ * @brief Checks for vector (RVV) data hazards on the instruction in IF/ID.
+ *
+ * Vector registers, vl and vtype are read in EX and written in WB, and there is no
+ * forwarding for them, so a vector instruction stalls one cycle when the instruction
+ * directly ahead of it (now in EX/MEM):
+ *  - is a vset* and the consumer reads vl/vtype (RAW on vl/vtype), or
+ *  - writes a vector register group overlapping a group the consumer reads (RAW on vregs).
+ *
+ * GPR dependencies (vset* writing rd, .vx / vle / vset* reading rs1) are handled by
+ * check_data_hazard like any scalar dependency.
+ *
+ * @param consumer_vtype vtype the IF/ID instruction will execute under; sizes its
+ *        register groups. (If a vset* is directly ahead, the consumer stalls anyway.)
+ * @return STALL_NONE or STALL_ONE_CYCLE.
+ */
+int check_vector_hazard(const IF_ID_Register &if_id_reg, const EX_MEM_Register &ex_mem_reg,
+                        uint64_t consumer_vtype);
 }//namespace Kites
