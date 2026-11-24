@@ -13,6 +13,7 @@
 #include "ui/processor_tab/processor_designs/rv5s_processor_nh_f_circuit_scene.h"
 #include "processor/alu.h"
 #include "processor/processor_base.h" // For ImmGenerator, etc.
+#include "processor/vector_unit.h"
 #include <algorithm>
 #include <chrono>
 #include <iostream>
@@ -213,6 +214,11 @@ void RV5StageProcessorNHF::pipeline_execute()
 
     bool is_f_instruction = instruction_set::isFInstruction(instruction);
     bool is_d_instruction = instruction_set::isDInstruction(instruction);
+    bool is_vector_instruction = vector_unit::IsVectorInstruction(instruction);
+
+    // GPR operands after forwarding; vector instructions take theirs from here.
+    uint64_t fwd_rs1 = id_ex_reg_.reg1_data;
+    uint64_t fwd_rs2 = id_ex_reg_.reg2_data;
 
     if (is_f_instruction)
     {
@@ -294,6 +300,9 @@ void RV5StageProcessorNHF::pipeline_execute()
                                                   : mem_wb_reg_.prev_alu_result;
         }
 
+        fwd_rs1 = alu_in1;
+        fwd_rs2 = alu_in2;
+
         // Re-apply immediate value check after forwarding for ALU_B if needed
         if (id_ex_reg_.alu_src && id_ex_reg_.alu_op != 0)
         {
@@ -305,7 +314,10 @@ void RV5StageProcessorNHF::pipeline_execute()
         }
 
         // --- EXECUTION ---
-        std::tie(alu_result, overflow) = alu::Alu::execute(alu_operation, alu_in1, alu_in2);
+        if (is_vector_instruction)
+            alu_result = 0; // set by execute_vector() below, once EX/MEM is latched
+        else
+            std::tie(alu_result, overflow) = alu::Alu::execute(alu_operation, alu_in1, alu_in2);
 
         if ((id_ex_reg_.instruction & 0b1111111) == 0b0110111) // lui
         {
@@ -350,6 +362,14 @@ void RV5StageProcessorNHF::pipeline_execute()
     ex_mem_reg_.prev_branch_taken = ex_mem_reg_.branch_taken;
     ex_mem_reg_.branch_taken = false;
     ex_mem_reg_.branch_target_pc = 0;
+
+    // Vector result (empty for scalar instructions so nothing stale reaches WB).
+    // GPR operands are forwarded above; vector registers / vl / vtype are not, so with
+    // no hazard detection a dependent vector instruction needs one nop in between.
+    if (is_vector_instruction)
+        execute_vector(fwd_rs1, fwd_rs2);
+    else
+        ex_mem_reg_.vector.reset();
 
     uint8_t opcode = instruction & 0b1111111;
 
