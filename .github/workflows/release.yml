@@ -6,6 +6,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -38,6 +39,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    env:
+      # Safe name for archives: the tag on releases, or branch-shortsha on manual runs
+      VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('{0}-{1}', github.ref_name, github.sha) }}
+
     steps:
       # --------------------------------------------
       # Checkout
@@ -54,6 +59,12 @@ jobs:
           version: ${{ matrix.qt_version }}
           arch: ${{ matrix.qt_arch }}
           tools: ${{ matrix.qt_tools }}
+
+      - name: Compute version name
+        shell: bash
+        run: |
+          v="${VERSION_NAME//\//-}"
+          echo "VERSION=${v:0:60}" >> "$GITHUB_ENV"
 
       # --------------------------------------------
       # Configure CMake
@@ -77,41 +88,43 @@ jobs:
           sudo apt update
           sudo apt install -y zip wget fuse libfuse2
 
-      - name: Download linuxdeployqt
+      - name: Download linuxdeploy
         if: runner.os == 'Linux'
         run: |
-          wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-          wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-          chmod +x linuxdeployqt-continuous-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
 
       - name: Create Linux AppImage
         if: runner.os == 'Linux'
         env:
-          QMAKE : ${{ env.QT_DIR }}/bin/qmake
+          QMAKE: ${{ env.QT_ROOT_DIR }}/bin/qmake
+          EXTRA_QT_PLUGINS: svg
         run: |
-          mkdir -p AppDir/usr/bin
-          cp build/Kites AppDir/usr/bin/
-          cp resources/icons/kite.png AppDir/Kites.png
-
-          cat > AppDir/Kites.desktop <<EOF
+          cat > Kites.desktop <<EOF
           [Desktop Entry]
           Type=Application
           Name=Kites
           Exec=Kites
-          Icon=Kites
-          Categories=Utility;
+          Icon=kites
+          Categories=Development;Education;
           EOF
+          cp resources/icons/kite.png kites.png
 
-          ./linuxdeployqt-continuous-x86_64.AppImage \
-            AppDir/Kites.desktop \
-            -appimage
+          ./linuxdeploy-x86_64.AppImage \
+            --appdir AppDir \
+            --executable build/Kites \
+            --desktop-file Kites.desktop \
+            --icon-file kites.png \
+            --plugin qt \
+            --output appimage
 
       - name: Zip Linux AppImage
         if: runner.os == 'Linux'
         run: |
-          archive_name="kites-linux-${GITHUB_REF_NAME}.zip"
+          archive_name="kites-linux-${VERSION}.zip"
           echo "ARCHIVE_NAME=$archive_name" >> "$GITHUB_ENV"
-          zip "$archive_name" *.AppImage
+          zip "$archive_name" Kites*.AppImage
 
       # ============================================
       # WINDOWS PACKAGING
@@ -120,7 +133,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $packageDir = "Kites-$env:GITHUB_REF_NAME-windows"
+          $packageDir = "Kites-$env:VERSION-windows"
           New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
           Copy-Item "build\Kites.exe" $packageDir
 
@@ -128,7 +141,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          windeployqt Kites-%GITHUB_REF_NAME%-windows\Kites.exe
+          windeployqt Kites-%VERSION%-windows\Kites.exe
 
 
       # --------------------------------------------------------
@@ -140,7 +153,7 @@ jobs:
         shell: pwsh
         run: |
           $gccPath = Split-Path (Get-Command g++.exe).Source
-          $packageDir = "Kites-$env:GITHUB_REF_NAME-windows"
+          $packageDir = "Kites-$env:VERSION-windows"
 
           Copy-Item "$gccPath\libgcc_s_seh-1.dll" $packageDir
           Copy-Item "$gccPath\libstdc++-6.dll" $packageDir
@@ -150,8 +163,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          $packageDir = "Kites-$env:GITHUB_REF_NAME-windows"
-          $archiveName = "kites-windows-$env:GITHUB_REF_NAME.zip"
+          $packageDir = "Kites-$env:VERSION-windows"
+          $archiveName = "kites-windows-$env:VERSION.zip"
           "ARCHIVE_NAME=$archiveName" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           Compress-Archive `
             -Path "$packageDir\*" `
@@ -168,7 +181,7 @@ jobs:
       - name: Zip macOS App
         if: runner.os == 'macOS'
         run: |
-          archive_name="kites-macos-${GITHUB_REF_NAME}.zip"
+          archive_name="kites-macos-${VERSION}.zip"
           echo "ARCHIVE_NAME=$archive_name" >> "$GITHUB_ENV"
           ditto -c -k --sequesterRsrc --keepParent \
             build/Kites.app \
@@ -177,7 +190,14 @@ jobs:
       # ============================================
       # Upload Release Assets
       # ============================================
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVE_NAME }}
+          path: ${{ env.ARCHIVE_NAME }}
+
       - name: Upload Release Assets
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ env.ARCHIVE_NAME }}
